@@ -20,8 +20,8 @@
       # Step 3: Install swirl
 install.packages('swirl')
       # Step 4: Start swirl
-        library(swirl)
-        swirl()
+library(swirl)
+swirl()
       # Step 5: Install an interactive course
         # 1:1: R programming
       # Step 6: Have fun!
@@ -32,7 +32,7 @@ install.packages('swirl')
   # Welcome to try more or explore other R courses!
         
         ## 3 common syntax errors
-        # 1. mispelling install.packages /=/ enstall.package
-        # 2. capitilizing install.packages /=/ Install.packages
-        # 3. punctuation install.packages /=/ install,packages
+        # 1. mispelling install.packages != enstall.packages
+        # 2. capitilizing install.packages != Install.packages
+        # 3. punctuation install.packages != install,packages
         
