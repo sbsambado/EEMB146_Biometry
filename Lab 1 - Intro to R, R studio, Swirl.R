@@ -1,5 +1,5 @@
 # EEMB 146 - Biometry 
-# Discussion: Tuesday at 10 AM with TA Sam
+# Discussion: Wednesday at 2 PM with TA Sam
 
 ## Class announcements
   # 1. Join Piazza
@@ -18,7 +18,7 @@
       # Step 1: Get R
       # Step 2: Get R Studio
       # Step 3: Install swirl
-install.packages('swirl')
+install.packages("swirl")
       # Step 4: Start swirl
 library(swirl)
 swirl()
@@ -35,4 +35,19 @@ swirl()
         # 1. mispelling install.packages != enstall.packages
         # 2. capitilizing install.packages != Install.packages
         # 3. punctuation install.packages != install,packages
-        
+bye()
+
+
+# | You can exit swirl and return to the R prompt (>) at any time by pressing the Esc key. If you are already
+# | at the prompt, type bye() to exit and save your progress. When you exit properly, you'll see a short
+# | message letting you know you've done so.
+# 
+# | When you are at the R prompt (>):
+#   | -- Typing skip() allows you to skip the current question.
+# | -- Typing play() lets you experiment with R on your own; swirl will ignore what you do...
+# | -- UNTIL you type nxt() which will regain swirl's attention.
+# | -- Typing bye() causes swirl to exit. Your progress will be saved.
+# | -- Typing main() returns you to swirl's main menu.
+# | -- Typing info() displays these options again.
+# 
+# | Let's get started!
