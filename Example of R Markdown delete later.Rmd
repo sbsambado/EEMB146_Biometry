@@ -1,0 +1,15 @@
+---
+title: "Example of R Markdown delete later"
+author: "sbsambado"
+date: "4/3/2020"
+output: html_document
+---
+plain text. 
+there are a lot syntax to make this legible and easy to read. 
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+x <- 2
+```
+
+
+
