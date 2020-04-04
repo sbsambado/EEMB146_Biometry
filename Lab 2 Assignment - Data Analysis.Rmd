@@ -1,0 +1,131 @@
+---
+title: "Lab 2 - Assignment"
+output:
+  html_document:
+    df_print: paged
+---
+
+Lab 2: Introduction to R Markdown and Data Analysis
+
+Exercise 1: Bat tongue Data
+```{r}
+# upload data from gauchospace
+library(readr)
+bat_tongues <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/battongues.csv")
+# View(bat_tongues) don't include View() or it will not knit!
+
+# make a copy of bat_tongues dataframe
+bat_copy <-bat_tongues
+
+# look at name of bat_copy
+names(bat_copy)
+
+# calculate means of 'tongue'
+mean(bat_copy$Tongue.length..mm.)
+
+# summary statistics for entire data frame or variable
+summary(bat_copy$Tongue.length..mm.)
+
+```
+
+Exercise 2: Caffeine Data
+```{r}
+# transformed xcel file to csv
+
+caffeine <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/caffeine.csv")
+
+# basic statistics
+summary(caffeine)
+
+# variance
+var(caffeine$Caffeine..mg..in.16.oz..coffee)
+
+# try code that Dr. Briggs went over in lecture during Week 1 (Wednesday)
+mean(caffeine$Caffeine..mg..in.16.oz..coffee)
+max(caffeine$Caffeine..mg..in.16.oz..coffee)
+min(caffeine$Caffeine..mg..in.16.oz..coffee)
+sd(caffeine$Caffeine..mg..in.16.oz..coffee)
+median(caffeine$Caffeine..mg..in.16.oz..coffee)
+range(caffeine$Caffeine..mg..in.16.oz..coffee)
+quantile(caffeine$Caffeine..mg..in.16.oz..coffee)
+
+# categorical data to analyze 
+table(caffeine)
+table(caffeine$Brand)
+
+# plot 
+coffee <-hist(caffeine$Caffeine..mg..in.16.oz..coffee, xlab = 'brand', ylab = 'caffeine',
+              main = 'coffee',col = 'blue') 
+
+```
+
+## Homework to turn in 
+
+Question 1. Mammal Data
+```{r}
+# upload data
+mammals <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/mammals.csv")
+
+
+# a. Which of the mammals has the largest brain size:body ratio?
+brain_body <- mammals$brain.mass..g./mammals$body.mass..kg.
+
+# combine columns
+new_mammals<-cbind(mammals, brain_body)
+
+# find max brain/body ratio
+new_mammals[which.max(new_mammals$brain_body),]
+
+# find min brain/body ratio
+new_mammals[which.min(new_mammals$brain_body),]
+
+# mean of brain/body ratio
+mean(new_mammals$brain_body)
+
+# find humans mean
+# make new dataframe to select human
+human<- new_mammals[which(new_mammals$name == 'Human'),]
+mean(human$brain_body)
+
+# human mean is 9.5, mammal mean is 21.3
+```
+
+Question 2: Bird data
+```{r}
+desert_birds <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/desert_birds.csv")
+
+# how many rare (<10 sightings) birds are there?
+rare <- subset(desert_birds, Count <= 10)
+print(rare)
+
+# summary statistics
+length(rare)
+dim(rare)
+mean(rare$Count)
+min(rare$Count)
+max(rare$Count)
+
+```
+
+Question 3: Endangered species data
+```{r}
+endangered <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/endangered.csv")
+
+# What proportion of these endangered species are vertebrates using R?
+
+# make new data frame with just vertebrate
+vertebrate <- subset(endangered, vertebrate == 'yes')
+print(vertebrate)
+
+# find the sum of vertebrates
+vertebrate_count <-sum(vertebrate$no.species)
+
+# Find the proportion of vertebrates that considered endangered 
+endangered_count <- sum(endangered$no.species)
+
+proportion <- vertebrate_count/endangered_count
+print(proportion)
+
+# vertebrates make up 0.27 or 27% of the endangered species list
+```
+
