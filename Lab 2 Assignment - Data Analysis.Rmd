@@ -66,7 +66,6 @@ Question 1. Mammal Data
 # upload data
 mammals <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/mammals.csv")
 
-
 # a. Which of the mammals has the largest brain size:body ratio?
 brain_body <- mammals$brain.mass..g./mammals$body.mass..kg.
 
