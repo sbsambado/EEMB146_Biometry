@@ -128,3 +128,134 @@ print(proportion)
 # vertebrates make up 0.27 or 27% of the endangered species list
 ```
 
+Quick Note based on Week 2 Lectures
+
+## Distributions in R
+In R, every distribution has four functions
+
+1) Root name: for normal distribution this is norm
+2) Prefix:
+- p (for 'probability'): cumulative distribution function ,cdf pnorm
+- q (for 'quantile'): inverse cdf qnorm
+- d (for 'density'): the density function, pdf dnorm
+- f (for 'random'): a random number from that distribution rnorm
+
+Density function
+```{r}
+y = seq(-5, 5, 0.1)
+fy = dnorm(y, mean = 0, sd = 1)
+plot(y, fy, type = 'l', ylab = 'f(Y)', xlab = 'Y',
+     main = 'Normal distribution')
+```
+
+Cumulative distribution function
+```{r}
+y = seq(-5, 5, 0.1)
+cdfy = pnorm(y, mean = 0, sd = 1)
+plot(y, cdfy, type = 'l', ylab = 'f(Y)', xlab = 'cumulative distribution',
+     main = 'Normal distribution')
+```
+
+Quantiles
+```{r}
+# at what value of Y is the 50% quantile?
+qnorm(0.5, mean = 0, sd = 1)
+
+# At what value of Y is the 70% quantile?
+x <- qnorm(0.7, mean = 0, sd = 1)
+
+plot(y, cdfy, type = 'l', ylab = 'f(Y)', xlab = 'cumulative distribution',
+     main = 'Normal distribution')
+abline(v = x)
+```
+
+Random draws
+```{r}
+# give me 10 random draws from normal distribution
+
+rnorm(10, mean = 0, sd = 1)
+```
+
+Log normal distribution
+- continuous
+- range: real values > 0 
+- parameters: mu (mean of logarithm), sigma (sd of logarithm)
+```{r}
+
+y = seq(0,10, 0.1)
+fy = dlnorm(y, mean = 0, sd = 1)
+plot(y, fy, type = 'l', xlab = 'Y', main = 'log normal distribution')
+```
+
+t-distribution
+```{r}
+x = seq(-5, 5, 0.1)
+y = dnorm(x, mean = 0, sd = 1)
+plot(x, y, type = 'l', col = 'red',xlab = 'Y', ylab = 'f(Y)', main = 't distribution')
+y2 = dt(x, df = 2)
+lines(x, y2, col = 'blue')
+```
+
+Uniform distribution
+- continuous
+- range: a to b
+- parameters: a (minimum), b (maximum)
+```{r}
+y = seq(0,10, 0.1)
+fy = dunif(y, min = 2, max = 8)
+plot(y, fy, type = 'l', xlab = 'Y', ylab = 'f(Y)', main = 'uniform')
+```
+
+Gamma distribution
+- waiting time until a certain number of evetns take place
+- range: positive real values
+- parameters: scale (length per event [ rate = rate at which events occur ~ 1/scale]), shape (number of events)
+
+e.g. gamma(shape = 3, scale = 2) is the distribution of time (in days) you'd expect to have to wait for 3 deaths in a population, given the average survival time is 2 days
+```{r}
+y = seq(0, 10 , 0.1)
+fy = dgamma(y, shape = 3, scale = 2)
+plot(y, fy, type = 'l', ylab = 'f(Y)', xlab = 'Y', main = 'gamma(shape = 3, scale = 2)')
+```
+
+Binomial distribution (0/1)
+- number of successes out of a given number of trials
+- discrete
+- range: non-negative integers
+- parameters: prob (prob. of each success), size (number of trials)
+```{r}
+y = seq(0,10)
+fy = dbinom(y, 10, prob = 0.5)
+barplot(fy, names = y, col = 'red', xlab = 'Y', ylab = 'probability', main = 'binomial, p = 0.5, 10 trials')
+
+# increase prob
+y = seq(0,10)
+fy = dbinom(y, 10, prob = 0.9)
+barplot(fy, names = y, col = 'red', xlab = 'Y', ylab = 'probability', main = 'binomial, p = 0.9, 10 trials')
+
+# lower prob
+# increase prob
+y = seq(0,10)
+fy = dbinom(y, 10, prob = 0.1)
+barplot(fy, names = y, col = 'red', xlab = 'Y', ylab = 'probability', main = 'binomial, p = 0.1, 10 trials')
+```
+
+Poisson distribution
+- number of individuals, arrivals, events, coutns, etc. in a given time/space/unit of counting effort, if each event is independent of all others
+- discrete
+- range: non-negative integers
+- parameters: lambda (rate) [mean and variance]
+```{r}
+y = seq(0,10)
+fy = dpois(y, lambda = 1)
+barplot(fy, names = y, col = 'red', xlab = 'Y',
+        ylab = 'probability', main = 'poisson, lambda = 1')
+
+# lambda = 0.1
+y = seq(0,10)
+fy = dpois(y, lambda = 0.1)
+barplot(fy, names = y, col = 'red', xlab = 'Y',
+        ylab = 'probability', main = 'poisson, lambda = 0.1')
+
+```
+
