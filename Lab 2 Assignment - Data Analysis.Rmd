@@ -7,24 +7,49 @@ output:
 
 Lab 2: Introduction to R Markdown and Data Analysis
 
+# 3 common syntax errors
+# spelling 
+install.packages('readr'), correct
+instal.package('redr') , not correct
+
+# capitilization
+install.packages('redr'), correct
+install.packages('redr'), not correct
+
+# punctuation
+install.packages('redr'), correct
+instll_packages('readr'), not correct
+
+
 Exercise 1: Bat tongue Data
 ```{r}
+#install.packages('readr') # if first time using readr
+
+## hashtag is making a comment, it is not seen as code
+# annotating your code is great practice! 
+
+caffeine <- read.csv("~/Desktop/caffeine.csv")
+
 # upload data from gauchospace
 library(readr)
 bat_tongues <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/battongues.csv")
+
 # View(bat_tongues) don't include View() or it will not knit!
 
 # make a copy of bat_tongues dataframe
 bat_copy <-bat_tongues
+# bat copy is dataframe that we're working with
 
-# look at name of bat_copy
-names(bat_copy)
+# change names of columns in bat_copy
+names(bat_copy) = c('species', 'palate', 'tongue')
+#View(bat_copy)
 
 # calculate means of 'tongue'
-mean(bat_copy$Tongue.length..mm.)
+mean(bat_copy$tongue)
 
 # summary statistics for entire data frame or variable
-summary(bat_copy$Tongue.length..mm.)
+summary(bat_copy$tongue)
+summary(bat_copy$species)
 
 ```
 
@@ -63,9 +88,11 @@ coffee <-hist(caffeine$Caffeine..mg..in.16.oz..coffee, xlab = 'brand', ylab = 'c
 
 Question 1. Mammal Data
 ```{r}
+
+
 # upload data
 mammals <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/mammals.csv")
-
+View(mammals)
 # a. Which of the mammals has the largest brain size:body ratio?
 brain_body <- mammals$brain.mass..g./mammals$body.mass..kg.
 
@@ -83,26 +110,64 @@ mean(new_mammals$brain_body)
 
 # find humans mean
 # make new dataframe to select human
-human<- new_mammals[which(new_mammals$name == 'Human'),]
+human <- new_mammals[which(new_mammals$name == 'Human'),] 
 mean(human$brain_body)
 
-# human mean is 9.5, mammal mean is 21.3
+# mammal mean is 9.5, Human mean is 21.3
+
+
+## Alternative way ##
+
+# rename data
+
+mammals<- read.csv()
+names(mammals) = c('name', 'body', 'brain')
+
+# calculate new ratio variable
+mammals['ratio'] = mammals$brain/ mammals$body
+
+# Which mammal has the largest brain size: body size ratio?
+largest_brain <- mammals[which.min(mammals$ratio),]
+
+# Find the men brain size: body size ratio. Are humans above or below the mean?
+mean(mammals$ratio) # finding the mean
+
+  
+mean_ratio <- mean(mammals$ratio)
+print(mean_ratio)
+
+print(5)
+
+
+mammals[mammals$name == 'Human', 'ratio'] # finding humans ratio
+
+# Making a logical statement
+mean(mammals$ratio) < mammals[mammals$name == 'Human', 'ratio']
 ```
 
 Question 2: Bird data
 ```{r}
 desert_birds <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/desert_birds.csv")
 
-# how many rare (<10 sightings) birds are there?
+### Question 2.a how many rare (<10 sightings) birds are there? ###
 rare <- subset(desert_birds, Count <= 10)
 print(rare)
+### ANSWER 2.a: There are 16 rare birds
 
 # summary statistics
-length(rare)
-dim(rare)
+length(rare) # columns
+dim(rare) # rows, columns
 mean(rare$Count)
 min(rare$Count)
 max(rare$Count)
+
+
+## Alternative Way ##
+
+sum(birds$Count <= 10)
+
+nrow(rare)
+dim(rare)
 
 ```
 
@@ -115,9 +180,15 @@ endangered <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 2/Lab 2/Lab 2 Files/
 # make new data frame with just vertebrate
 vertebrate <- subset(endangered, vertebrate == 'yes')
 print(vertebrate)
+View(vertebrate)
 
 # find the sum of vertebrates
 vertebrate_count <-sum(vertebrate$no.species)
+
+# another way to 'count' your data
+install.packages('plyr') # new package alert!
+library(plyr) # always call back in that new package
+count(vertebrate$no.species) # I am applying the function 'count' to data set = 
 
 # Find the proportion of vertebrates that considered endangered 
 endangered_count <- sum(endangered$no.species)
@@ -126,6 +197,13 @@ proportion <- vertebrate_count/endangered_count
 print(proportion)
 
 # vertebrates make up 0.27 or 27% of the endangered species list
+
+
+## Alternative way
+
+verts <- sum(endangered$no.species[endangered$vertebrate == 'yes'])
+prop <- verts/sum(endangered$no.species)
+prop
 ```
 
 Quick Note based on Week 2 Lectures
@@ -225,12 +303,12 @@ Binomial distribution (0/1)
 - parameters: prob (prob. of each success), size (number of trials)
 ```{r}
 y = seq(0,10)
-fy = dbinom(y, 10, prob = 0.5)
+fy = dbinom(y, 10, prob = 0.5) # getting tails
 barplot(fy, names = y, col = 'red', xlab = 'Y', ylab = 'probability', main = 'binomial, p = 0.5, 10 trials')
 
 # increase prob
 y = seq(0,10)
-fy = dbinom(y, 10, prob = 0.9)
+fy = dbinom(y, 10, prob = 0.9) # 90% of getting tails
 barplot(fy, names = y, col = 'red', xlab = 'Y', ylab = 'probability', main = 'binomial, p = 0.9, 10 trials')
 
 # lower prob
@@ -259,3 +337,7 @@ barplot(fy, names = y, col = 'red', xlab = 'Y',
 
 ```
 
+## how to interpret your console
+
+> it's all good, you're code ran!
++ something is missing from your code, could be unmatched bracket, or bad internet connection (so just restart your R session to fix that problem)

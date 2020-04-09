@@ -1,0 +1,55 @@
+---
+title: "Lab 2 - In class discussion"
+author: "sbsambado"
+date: "4/7/2020"
+output: html_document
+---
+EEMB 146
+TA Sam
+
+Today's Agenda
+1. Learn R Markdown
+2. Make a homework template
+3. In-lab exercises: intro to R Markdown and data analysis
+4. Start homework problems
+
+*What is due* 
+## 'Homework to turn in', questions 1 - 3 at bottom of Lab 2 PDF on Gauchospace
+# Due as a HTML or PDF file before 11:59 PM on April 15th
+
+```{r}
+# upload data 
+
+# first install package 'readr'
+install.packages('readr')
+# call package in with library
+library(readr)
+
+library(readr)
+caffeine <- read.csv("~/Desktop/caffeine.csv")
+#View(caffeine)
+```
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
