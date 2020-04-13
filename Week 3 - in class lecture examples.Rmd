@@ -1,0 +1,157 @@
+---
+title: "Week 3 in class lectures"
+author: "sbsambado"
+date: "4/13/2020"
+output: html_document
+---
+
+Topic 2: Normal distribution
+
+Old final exam questions
+
+6. The weights of all females fruit flies in a very large population of fruit flies are normally distributed with a mean of 0.3 mg and a standard deviation of 0.01 mg. We select a female fruit fly at random from the population. What is the probability that it has a weight of less than 0.27 mg or more than 0.31 mg?
+```{r}
+# plotting the probability density function for a standard normal distribution
+
+mu = 0.3 # set mean
+sd = 0.01 # set standard deviation
+
+flyweight = seq(mu - (5*sd), mu + (5*sd), 0.001) # creates a sequence of numbers from mu-5*sd to mu+5*sd, at intervals of 0.001
+
+prob = dnorm(flyweight, mean=mu, sd=sd) # caclulates the probability density for every value of Y
+
+# make a plot with X on the x-axis and fx on the y-axis
+plot(flyweight, prob, type = 'l', ylab = 'probability density of weight', xlab = 'weight (mg)', main = 'fruitflies')
+abline(v = 0.27, col = 'red')
+abline(v = 0.31, col = 'blue')
+
+pnorm(0.27, mean = 0.3, sd = 0.01) +
+  (1 - pnorm(0.31, mean = 0.3, sd = 0.01))
+```
+
+Topic 3: Inference about mean
+
+95% confidence interval for a mean
+
+Paradise flying snakes
+```{r}
+sample = c(0.9, 1.4, 1.2, 1.2, 1.3, 2.0, 1.4, 1.6)
+estimate_mean = 1.375
+sd = 0.324
+n = 8
+
+x = seq(-5, 5, 0.1)
+fx = dt(x, df = 7) # df = degrees of freedom
+plot(x, fx, xlab = 'X', ylab = 'probability density', main = 't distribution, df = 7',
+     type = 'l')
+abline(v = qt(0.975, df = 7), col = 'red') # quantile function
+
+qt(0.975, df = 7)
+
+lower = 1.375 - qt(0.975, df = 7)*0.324/sqrt(8)
+lower
+
+upper = 1.375 + qt(0.975, df = 7)*0.324/sqrt(8)
+upper
+
+
+## easier way to do this, One Sample t-test
+Y = c(0.9, 1.4, 1.2, 1.2, 1.3, 2.0, 1.4, 1.6)
+t.test(Y)
+```
+
+Topic 5: One sample t-test
+
+> dataframe <- c(data points)
+> mu0 = mean from sampled data frame
+
+>t.test(dataframe, mu = mu0)
+
+
+Assumptions:
+1. variable is normally distributed
+2. sample is a random sample
+
+Human body temperature
+```{r}
+# find the p-values
+
+mu0 = 98.6
+n = 24
+Ybar = 98.28
+s = 0.94
+
+se = s/sqrt(n)
+df = n - 1
+
+t = (Ybar - mu0)/se
+
+# draw the t distribution
+curve(dt(x, df = 23), xlim = c(-5,5), xlab = 't', ylab = 'probability density',
+      main = 't-distribution', df = 23)
+abline(h = 0, col = 'grey')
+
+# define left shaded region
+xmin <- -5
+lowerbound <- t
+
+xpoints <- c(xmin, seq(xmin, lowerbound, 0.01), lowerbound)
+ypoints <- c(0, dt(seq(xmin, lowerbound, 0.01), df = 23), 0)
+polygon(xpoints, ypoints, col = 'red')
+
+# define right shaded region
+xmax <- 5
+upperbound <- -t
+
+xpoints2 <- c(upperbound, seq(upperbound, xmax, 0.01), xmax)
+ypoints2 <- c(0, dt(seq(upperbound, xmax, 0.01), df = 23), 0)
+polygon(xpoints2, ypoints2, col = 'red')
+
+abline(v = qt(0.025, df = 23), lty = 2)
+abline(v = qt(0.975, df = 23), lty = 2)
+
+pvalue = 2*pt(t, df = 23)
+pvalue
+
+
+## but increase your sample size to improve your pvalue
+# find the p-values
+
+mu0 = 98.6
+n = 130
+Ybar = 98.28
+s = 0.94
+
+se = s/sqrt(n)
+df = n - 1
+
+t = (Ybar - mu0)/se
+
+# draw the t distribution
+curve(dt(x, df = 129), xlim = c(-5,5), xlab = 't', ylab = 'probability density',
+      main = 't-distribution', df = 129)
+abline(h = 0, col = 'grey')
+
+# define left shaded region
+xmin <- -5
+lowerbound <- t
+
+xpoints <- c(xmin, seq(xmin, lowerbound, 0.01), lowerbound)
+ypoints <- c(0, dt(seq(xmin, lowerbound, 0.01), df = 129), 0)
+polygon(xpoints, ypoints, col = 'red')
+
+# define right shaded region
+xmax <- 5
+upperbound <- -t
+
+xpoints2 <- c(upperbound, seq(upperbound, xmax, 0.01), xmax)
+ypoints2 <- c(0, dt(seq(upperbound, xmax, 0.01), df = 129), 0)
+polygon(xpoints2, ypoints2, col = 'red')
+
+abline(v = qt(0.025, df = 129), lty = 2)
+abline(v = qt(0.975, df = 129), lty = 2)
+
+pvalue = 2*pt(t, df = 129)
+pvalue
+```
+
