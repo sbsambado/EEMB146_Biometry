@@ -1,0 +1,451 @@
+---
+title: "Lab 3 - Data visualization"
+author: "sbsambado"
+date: "4/13/2020"
+output: html_document
+---
+# Class announcements
+1. Lab 2 is due this Wednesday April 15th at 11:59
+
+2. Lab 3 will be due next Wednesday April 22nd at 11:59
+
+3. Resources
+  - Q&A forum on piazza
+  - weblinks posted on GS and piazza
+  - google really is your best friend!
+~ you don't have to know everything, just know how to troubleshoot errors!
+
+4. Typical coding errors
+ - spelling 
+ - capitilization
+ - punctuation
+ - open brackets
+ - View() # run View() in consule or # View() after running code
+ - `read.csv` not `read_csv` (it's a warning, but easier to fix it) 
+ ~ unfortunately, you will not be able to knit a document if there's an error
+ ~~ however, the error message usually guides you to where the error is!
+ 
+5. Save your exercises for personal references, esp. for individual final projects
+- begining of PDF file is helpful to run through that code
+- Towards end, you will asked to do 3 exercises that will help you answer HW questions
+-- don't turn in those exercises, but you will do similar things for HW
+- Turn in code (annotated and plotted) for HW questions 1 - 3 
+
+
+ ## Today's Agenda
+
+Together
+1. Go over nifty tricks to ensure successful directory pathways for lab files
+
+Separate (I will still be here to answer any questions!)
+2. Work through exerices
+3. Work through homework
+
+Packages needed for this lab
+```{r}
+library(readr)
+
+# if you want to use ggplot
+library(tidyverse)
+library(ggplot2)
+```
+
+ 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE) # make sure your code and plots get outputted 
+knitr::opts_chunk$set(root.dir = "~/Desktop/Classes/EEMB 146 S20/EEMB146_Biometry/Lab 3 Data-20200413")
+# setting your working directory for all chunks
+
+# OR
+
+# upload data via Import Dataset > Browse > select file > copy paste file pathway
+```
+
+Plotting in R
+
+What should a graph contain?
+- data 
+- labels (x-axis, y-axis, main title)
+- legend
+
+Plotting types 
+1. Base plot (don't need to upload anything)
+2. ggplot (need to upload tidyverse and ggplot2)
+
+Curious to learn more?
+1. Data visualization examples (http://r-graph-gallery.com/)
+2. ? in R will give you details in the 'Help' tab in bottom right consule
+> ?plot() # shows you what you need
+
+
+*Remember* 
+
+variable_name <- argument/values
+
+`$` calls column within data frame
+
+"" or '' for character data (i.e. words, letters) [should make green writting]
+
+'c()' concatenate (i.e. bring together multiple items)
+
+' [ ] ' selecting data 
+
+'+' you need to complete a code
+
+'>' your code ran successfully!
+
+In class exercises:
+
+Guppies dataset
+```{r}
+# uploading guppies data
+guppies <- read.csv("~/Desktop/Classes/EEMB 146 S20/EEMB146_Biometry/Lab 3 Data-20200413/guppies.csv")
+
+# gets the top few rows of data
+head(guppies)
+
+# Make a scatterplot of father's ornamentation vs. son's attractiveness to see if father and son attractivenss correlates
+plot(guppies$father.ornament, guppies$son.attract, # assigning values to xlab and ylab
+     xlab = 'Fathers ornamentation', ylab = 'Sons Attractiveness', # giving xlab and ylab titles
+     col = 'red', # giving the plot color
+     pch = 19, # changing the shape of points
+     ylim = c(-0.5, 1.5)) # assigning coordinate values
+
+```
+
+Desert bird dataset
+```{r}
+
+# empirical = bird dataset
+
+# read in bird data
+birds <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 3/Lab 3/Lab 3 Data-20200413/desert_birds.csv")
+
+# create a cumulative density function (CDF) plot of species abundance distribtion of desert birds
+
+# take a random normal sample that is the length of the count column in birds dataframe and has the same mean and standard deviation (sd)
+
+# generate simulated data using our bird dataset
+norm_data <- rnorm(length(birds$Count), mean = mean(birds$Count), sd = sd(birds$Count))
+
+# make an empirical CDF of birds
+emp_cdf <- ecdf(birds$Count)
+
+# make an CDF of the normal sample
+norm_cdf <- ecdf(norm_data)
+
+# plot the bird CDF
+plot(emp_cdf, # specifying this dataset
+     col = 'red', # data from that dataset will be in red
+     main = 'CDF of bird counts compared to normal distribution',  # giving a main title
+     xlab = 'Count', ylab = 'Cumulative relative frequency') + # giving xlab and ylab titles
+     lines(norm_cdf, col = 'blue') # calling in norm_cdf dataset and making it blue
+legend(400, 0.4, c('Birds', 'Normal Distribution'), col = c('red', 'blue'), pch = c(19,19)) # making a legend
+# legend(location, names, color of names, shape of points)
+
+```
+
+Making a Line Plot
+
+Lynx dataset
+```{r}
+# read in dataset
+lynx <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 3/Lab 3/Lab 3 Data-20200413/lynx_data.csv")
+
+# lets plot to see the number of pelts collected per year over time
+
+# Method 1
+plot(lynx$date, # assign value to x-axis
+     lynx$no.pelts, # assign value to y-axis
+     pch = 19, # size of points
+     xlab = 'Year', # give x-axis a title
+     ylab = 'Number of pelts') + # give y-axis a title
+  lines(lynx$date, lynx$no.pelts) # assigning values to lines
+
+# Method 2
+plot(no.pelts ~ date, # plotting date (independent variable, X) by number of pelts (dependent variable, Y)
+     data = lynx, # calling data from lynx dataset
+     pch = 16, # size of points
+     type = 'b', # type of plot is both (points + lines)
+     xlab = 'Date', # give x-axis a title
+     ylab = 'Number of pelts') # give y-axis a title
+
+# use `?plot` if you have questions!
+```
+
+Plant dataset
+```{r}
+# Are plant communities along the habitat edge different than plant communities that are not on the edge?
+
+# read in dataset
+plant <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 3/Lab 3/Lab 3 Data-20200413/plant_data.csv")
+
+# view and explore data
+head(plant)
+
+# look at vairables
+names(plant)
+
+# run basic summary statistics
+summary(plant)
+
+# look at data structure, what types of variables are you dealing with
+str(plant)
+
+# look at dimensions of data
+dim(plant) # rows, columns
+
+
+```
+
+Write all answers in Rmarkdown file and include the code necessary to reproduce your results exactly. All answers should be in complete sentences
+
+# Exercise 1: distributions
+```{r}
+# ?hist
+
+# make histogram of no. of leaves in rosette
+hist(plant$num_leaves_in_rosette)
+
+# changing number of breaks will give you more/fewer bins ~ play around with this
+hist(plant$num_leaves_in_rosette, breaks = 20)
+
+# give your histogram pizazz
+hist(plant$num_leaves_in_rosette, # looking at 'leaves_in_rosette' column in plant dataset
+     breaks = 20, # bining your data in groups of 20
+     col = 'darkgrey', # assinging fill in color of histogram
+     xlab = 'number of leaves in rosette', # giving x-axis title
+     ylab = 'density', # giving y-axis title
+     main = 'histogram of number of leaves in rosette') # giving main title
+
+# let's compare number of dandelion leaves between 0 m, 3 m, 6 m from habitat edge
+
+# leaves 0 m from habitat edge
+hist(plant$num_leaves_in_rosette[plant$dist_from_edge_m == '0.0m'], # selecting data that equals 0.0m (has to be exact)
+     col = 'darkgrey', # fill in color of histogram
+     xlab = 'Number of leaves in rosette', # giving x-axis title
+     ylab = ' density',  # giving y-axis title
+     main = 'histogram of number of leaves in rosette - 0 m', # giving main title
+     xlim = c(0,40)) # setting xlab coordinates
+
+# leaves 3 m from habitat edge
+hist(plant$num_leaves_in_rosette[plant$dist_from_edge_m == '3.0m'], # selecting data that equals 0.0m (has to be exact)
+     col = 'darkgrey', # fill in color of histogram
+     xlab = 'Number of leaves in rosette', # giving x-axis title
+     ylab = ' density',  # giving y-axis title
+     main = 'histogram of number of leaves in rosette - 3.0 m', # giving main title
+     xlim = c(0,40)) # setting xlab coordinates
+
+# leaves 6 m from habitat edge
+hist(plant$num_leaves_in_rosette[plant$dist_from_edge_m == '6.0m'], # selecting data that equals 0.0m (has to be exact)
+     col = 'darkgrey', # fill in color of histogram
+     xlab = 'Number of leaves in rosette', # giving x-axis title
+     ylab = ' density',  # giving y-axis title
+     main = 'histogram of number of leaves in rosette - 6.0 m', # giving main title
+     xlim = c(0,40)) # setting xlab coordinates
+
+
+# let's combine all 3 histograms in one plot
+par(mfrow = c(3,1)) # sets up your plot (3 x 1)
+# leaves 0 m from habitat edge
+hist(plant$num_leaves_in_rosette[plant$dist_from_edge_m == '0.0m'], # selecting data that equals 0.0m (has to be exact)
+     col = 'darkgrey', # fill in color of histogram
+     xlab = 'Number of leaves in rosette', # giving x-axis title
+     ylab = ' density',  # giving y-axis title
+     main = 'histogram of number of leaves in rosette - 0 m', # giving main title
+     xlim = c(0,40)) # setting xlab coordinates
+
+# leaves 3 m from habitat edge
+hist(plant$num_leaves_in_rosette[plant$dist_from_edge_m == '3.0m'], # selecting data that equals 0.0m (has to be exact)
+     col = 'darkgrey', # fill in color of histogram
+     xlab = 'Number of leaves in rosette', # giving x-axis title
+     ylab = ' density',  # giving y-axis title
+     main = 'histogram of number of leaves in rosette - 3.0 m', # giving main title
+     xlim = c(0,40)) # setting xlab coordinates
+
+# leaves 6 m from habitat edge
+hist(plant$num_leaves_in_rosette[plant$dist_from_edge_m == '6.0m'], # selecting data that equals 0.0m (has to be exact)
+     col = 'darkgrey', # fill in color of histogram
+     xlab = 'Number of leaves in rosette', # giving x-axis title
+     ylab = ' density',  # giving y-axis title
+     main = 'histogram of number of leaves in rosette - 6.0 m', # giving main title
+     xlim = c(0,40)) # setting xlab coordinates
+
+
+## SWITCH THIS BACK TO 1 PLOT AT A TIME ##
+
+par(mfrow = c(1,1))
+
+
+# Let's create a boxplot.
+
+# How does distance from edge of habitat (explanatory variable) affect number of leaves per rosette (response variable)?
+
+boxplot(num_leaves_in_rosette~dist_from_edge_m, # plotting independent variable, X by dependent variable, Y
+        data = plant, # calling from plant dataset
+        xlab = ' distance from edge(m)',  # title 
+        ylab = 'number of leaves per rosette', # title
+        col = 'darkgrey') # fill in color of boxplot
+
+```
+
+##Homework 
+
+# Question 1
+
+Follow exercise above but use the data for 'dand_rosette_diam_cm'
+```{r}
+## a) Describe the shape of the dandelion rosette diameter distribution for different distances from the edge. are they symmetrical or skewed?
+
+# I am recalling dataset 
+plant <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 3/Lab 3/Lab 3 Data-20200413/plant_data.csv")
+
+# Make a histogram to look at data shape
+par(mfrow=c(3,1))
+hist(plant$dand_rosette_diam_cm[plant$dist_from_edge_m == "0.0m"], xlab="Dandelion diameter (cm)", ylab="Density", main = "Histogram of dandelion rosette diameter - 0m")
+hist(plant$dand_rosette_diam_cm[plant$dist_from_edge_m == "3.0m"], xlab="Dandelion diameter (cm)", ylab="Density", main = "Histogram of dandelion rosette diameter - 3m")
+hist(plant$dand_rosette_diam_cm[plant$dist_from_edge_m == "6.0m"], xlab="Dandelion diameter (cm)", ylab="Density", main = "Histogram of dandelion rosette diameter - 6m")
+
+## ANSWER: All the data looks slightly skewed, with tails pointing in the right. However, 0 m and 3 m look the most normal 
+
+## b) Based on the boxplot, how do the medians and dispersion (aka spread of data) compare across different distances from the edge? Would you feel confidence concluding that the distance from the edge has a significant effect on dandelion rosette diameter?
+
+# return plot display to normal
+par(mfrow=c(3,1))
+
+# Make a boxplot of dandelion rosette diameter
+boxplot(dand_rosette_diam_cm ~ dist_from_edge_m, 
+        data = plant, # state which dataset
+        xlab="Distance from edge", #title
+		    ylab="Dandelion rosette diameter") # title
+
+## ANSWER: The median rosette diameters are very similar at different distances from the edge.  However, the dispersion or spread of the data increases as the distance from the edge increases. Based on this, I would not feel confident concluding that there is a significant effect of edge on median rosette diameter, but I would feel confident concluding that there is a significant effect of edge on the variance in rosette diameter.
+
+```
+
+
+## Exercise 2: Transformations [don't include in data file]
+
+Transformations in data analysis to make our data look more normal
+```{r}
+# create a new variable, natural log + 1 (Log transformation)
+log_num_flowers <- log(plant$num_flowers + 1) # create new column 
+head(log_num_flowers) # what do the transformed numbers look like now
+
+# if you want to create a new variable AND add it to your dataframe
+plant$log_num_flowers <- log(plant$num_flowers + 1)
+str(plant) # double check it's there
+
+## METHOD 2, use cbind() command
+new_plant <- cbind(plant, log_num_flowers) # make new dataset with additional column
+str(new_plant)
+
+par(mfrow = c(1,2)) # compare side to side
+# hist of non-transformed data
+hist(plant$num_flowers) 
+# hist of transformed data
+hist(plant$log_num_flowers)
+
+# return back to normal plot settings
+par(mfrow = c(1,1))
+
+
+# to square num flowers
+plant$num_flowers_sq <- plant$num_flowers^2
+str(plant)
+```
+
+## Homework Question 2
+
+Follow procedure used in Exercise 1 and make a histogram for: 
+1. num_flowers variable
+2. log_num_flowers
+3. num_flowers_sq
+
+You should have 3 plots.
+```{r}
+## A) What did log transforming and squaring your data do to the distributions?
+
+# log transform num_flowers
+plant$log_num_flowers = log(plant$num_flowers + 1)
+
+# squaring num_flowers
+plant$num_flowers_sq = plant$num_flowers^2
+
+# Make histogram of data
+par(mfrow=c(3,1))
+hist(plant$num_flowers, xlab="Number of flowers", breaks=20, main = 'original data')
+hist(plant$log_num_flowers, xlab="Log number of flowers", breaks=20, main = 'log transformed data')
+hist(plant$num_flowers_sq, xlab="Number of flowers squared", breaks=20, main = 'squared data')
+
+## ANSWER: Squaring the data only scaled the data, but did nothing about changing the distribution ("increasing the right skew"). Log-transforming the data changed the distribution ("decreased the right skew of the data"). 
+
+
+
+## B) Which data looks more normal: the original data, log-transformed data, squared data?
+
+## ANSWER: The log-transformed data looks more normal.
+
+
+
+
+## C) Why did we add 1 to num_flowers when we log-transformed it but not when we square root transformed it?
+
+## ANSWER: The variable `num_flowers` can be 0 because it is a count. However the log of 0 is not a number; it is negative infinity.  Therefore, we need to add 1 to all values in the column to scale the data.
+
+```
+
+## Exercise 3: Scatter plots [don't include in your homework file]
+
+Is there an association with the size of a dandelion rosette and the number of leaves on a dandelion rosette (e.g. do dandelions with larger rosettes have more leaves?).
+
+Both of these variables are numerical, so make a scatterplot to answer this question!
+```{r}
+# make a scatterplot
+
+# Method 1
+plot(num_leaves_in_rosette ~ dand_rosette_diam_cm, # stating dependent and independent variable
+     data = plant, # stating the data set you're using
+     xlab = ' Dandelion rosette diameter (cm)', # title
+     ylab = ' Number of leaves in rosette') # title
+
+# Method 2
+plot(plant$num_leaves_in_rosette ~ plant$dand_rosette_diam_cm)
+
+# now overlay a least squares line to get an idea of the trend 
+# run a linear regression
+fit <- lm(num_leaves_in_rosette ~ dand_rosette_diam_cm, data = plant)
+abline(fit, col = 'green', lwd = 3) # lwd = line width
+
+```
+
+
+## Homework Question 3
+
+We also might expect that the percent cover in a quadrat to vary with the distance to the nearest tree.
+
+Make a scatterplot to explore this relationship using the variables dist_from_tree_m and percent_cover.
+
+You should have 1 plot.
+```{r}
+## A) What trend do you notice in the data? Is the linear trend line (green) a good representation of this trend?
+
+# make a scatter plot
+plot(plant$percent_cover ~ plant$dist_from_tree_m, xlab="Distance from tree", ylab="Percent cover",
+     ylim = c(0, 110)) # extended coordinates
+# add a linear regression line `lm` function
+fit <- lm(plant$percent_cover ~ plant$dist_from_tree_m, data=plant)
+abline(fit,col="green", lwd = 3)
+
+## ANSWER: As we increase the distance from the nearest tree we see an increase in the percent cover. However, the linear trend line is not a good representation of this trend. The trend looks distinctly non-linear and there is substantial variation in the data. Just because R fitted a linear trend line doesn't mean that a line is the best fit. Even looking just looking at the slope of the line, we can tell it's a small relationship. Thus indicating that there is a weak to possibly no linear relationship.
+
+
+## B) WHat is the explanatory variable (x-axis)? What is the response variable (y-axis)?
+
+## ANSWER: The explanatory variable is `dist_from_tree_m` and the response variable is `percent_cover`.
+```
+
+```{r}
+
+```
+
