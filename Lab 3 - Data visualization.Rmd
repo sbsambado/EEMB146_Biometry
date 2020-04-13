@@ -440,6 +440,7 @@ abline(fit,col="green", lwd = 3)
 ## ANSWER: As we increase the distance from the nearest tree we see an increase in the percent cover. However, the linear trend line is not a good representation of this trend. The trend looks distinctly non-linear and there is substantial variation in the data. Just because R fitted a linear trend line doesn't mean that a line is the best fit. Even looking just looking at the slope of the line, we can tell it's a small relationship. Thus indicating that there is a weak to possibly no linear relationship.
 
 
+
 ## B) WHat is the explanatory variable (x-axis)? What is the response variable (y-axis)?
 
 ## ANSWER: The explanatory variable is `dist_from_tree_m` and the response variable is `percent_cover`.
