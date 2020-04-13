@@ -4,6 +4,7 @@ author: "sbsambado"
 date: "4/13/2020"
 output: html_document
 ---
+
 # Class announcements
 1. Lab 2 is due this Wednesday April 15th at 11:59
 
