@@ -17,9 +17,9 @@ output: html_document
 ~ you don't have to know everything, just know how to troubleshoot errors!
 
 4. Typical coding errors
- - spelling 
- - capitilization
- - punctuation
+ - spelling (librry != library)
+ - capitilization  ( Library != library)
+ - punctuation (library. != library_ )
  - open brackets
  - View() # run View() in consule or # View() after running code
  - `read.csv` not `read_csv` (it's a warning, but easier to fix it) 
@@ -43,26 +43,41 @@ Separate (I will still be here to answer any questions!)
 3. Work through homework
 
 Packages needed for this lab
-```{r}
+```{r set up}
+install.package('readr')
+# to read in csv files
 library(readr)
 
 # if you want to use ggplot
 library(tidyverse)
 library(ggplot2)
+
+
 ```
 
  
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE) # make sure your code and plots get outputted 
-knitr::opts_chunk$set(root.dir = "~/Desktop/Classes/EEMB 146 S20/EEMB146_Biometry/Lab 3 Data-20200413")
+knitr::opts_chunk$set(root.dir = "~/Desktop/Classes/EEMB 146 S20/EEMB146_Biometry")
 # setting your working directory for all chunks
+## PC users won't have '~'
+
+# TA Tatum's video
+#https://gauchocast.hosted.panopto.com/Panopto/Pages/Viewer.aspx?id=a3735a0a-4ce2-49ee-98fd-ab9c01853f04
 
 # OR
 
 # upload data via Import Dataset > Browse > select file > copy paste file pathway
 ```
 
-Plotting in R
+*Plotting in R*
+
+R Base Graphics:
+https://rstudio-pubs-static.s3.amazonaws.com/7953_4e3efd5b9415444ca065b1167862c349.html
+
+Fundamentals of Data Visualization:
+https://serialmentor.com/dataviz/
+
 
 What should a graph contain?
 - data 
@@ -78,6 +93,9 @@ Curious to learn more?
 2. ? in R will give you details in the 'Help' tab in bottom right consule
 > ?plot() # shows you what you need
 
+```{r}
+
+```
 
 *Remember* 
 
@@ -85,7 +103,7 @@ variable_name <- argument/values
 
 `$` calls column within data frame
 
-"" or '' for character data (i.e. words, letters) [should make green writting]
+"words" or 'words' for character data (i.e. words, letters) [should make green writting]
 
 'c()' concatenate (i.e. bring together multiple items)
 
