@@ -1,0 +1,287 @@
+---
+title: "Week 3 - Lecture material"
+author: "sbsambado"
+date: "4/15/2020"
+output: html_document
+---
+Following along zoom meeting with Dr. Briggs for Biometry
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+April 15th (Wednesday)
+
+## Goals
+1. To illustrate some of the things you can do in R with the Normal and t distributions.
+
+### Normal Distribution in R
+`pnorm` (`p` for "probability"): cumulative distribution function, cdf
+`qnorm`(`q` for "quantile"): inverse cdf
+`dnorm` (`d` for "density"): the density function, pdf
+`rnorm` (`r` for "random"): a random number from that distribution
+
+## Week 3, topic 2: British Spy example
+MI5 says a man has to be shorter than 180.3 cm tall to be a spy. (5’ 11”)
+
+Mean height of British men is 177.0cm, with standard deviation 7.1cm, with a normal distribution.
+
+What proportion of British men are excluded from a career as a spy by this height criteria?
+
+```{r}
+#Plotting the probability density function for a Standard Normal Distribution. 
+mu = 177  # set the mean
+sd = 7.1  # set the standard deviation
+
+height = seq(mu-(5*sd), mu+(5*sd), 0.1)  # This creates a sequence of numbers from mu-5*sd to mu+5*sd, at intervals of 0.1
+
+prob = dnorm(height, mean=mu, sd=sd)  # this calculates the probability density for every value of Y
+
+# Make a plot with X on the x-axis and fx on the y-axis.
+# the option type = "l" says to plot it as a line graph (the default is points)  
+plot(height, prob, type = "l", ylab="probability density of height", xlab="height (cm)", main="Height of British men")
+abline(v=180.3,col="red")
+
+```
+
+Calculate the probability of height > 180.3 cm
+```{r}
+
+1 - pnorm(180.3,mean = mu, sd = sd)
+
+```
+
+Remember that the `pnorm` command is the cumulative probability density. It gives the probability of being less than or equal to a given value:
+
+```{r}
+cdf_height =  pnorm(height, mean=mu, sd=sd)
+
+plot(height,cdf_height, type = "l", ylab="cdf(height)",
+ xlab="height", main="Normal distribution")
+abline(v=180.3, col="red")
+abline(h=pnorm(180.3,mean = mu, sd = sd), col="blue")
+```
+
+
+## NASA Astronaut Example
+To be a NASA astronaut, you must be between 148.6 cm and 193.0 cm in height.
+What fraction of American females are eligible to be an astronaut, if the mean height of female Americans is 162.6 cm and the standard deviation is 6.4 cm?
+
+```{r}
+#Plotting the probability density function for a Standard Normal Distribution. 
+mu = 162.6  # set the mean
+sd = 6.4  # set the standard deviation
+
+height = seq(mu-(5*sd), mu+(5*sd), 0.1)  # This creates a sequence of numbers from mu-5*sd to mu+5*sd, at intervals of 0.1
+
+prob = dnorm(height, mean=mu, sd=sd)  # this calculates the probability density for every value of Y
+
+# Make a plot with X on the x-axis and fx on the y-axis.
+# the option type = "l" says to plot it as a line graph (the default is points)  
+plot(height, prob, type = "l", ylab="probability density of height", xlab="height (cm)", main="Height of American women")
+abline(v=148.6,col="purple")
+abline(v=193.0,col="orange")
+```
+
+
+
+```{r}
+cdf_height =  pnorm(height, mean=mu, sd=sd)
+
+plot(height,cdf_height, type = "l", ylab="cdf(height)",
+ xlab="height", main="Normal distribution")
+abline(v=148.6,col="purple")
+abline(v=193.0,col="orange")
+```
+
+```{r}
+pnorm(193, mean = 162.6, sd = 6.4) - pnorm(148.6, mean = 162.6, sd = 6.4)
+```
+
+## Fruit fly example. 
+The weights of all female fruit flies in a very large population of fruit flies are normally distributed with a mean of 0.3 mg and a standard deviation of 0.01 mg. We select a female fruit fly at random from the population.  What is the probability that it has a weight of less than 0.27 mg or more than 0.31 mg? 
+
+```{r}
+#Plotting the probability density function for a Standard Normal Distribution. 
+mu = 0.3  # set the mean
+sd = 0.01  # set the standard deviation
+
+flyweight = seq(mu-(5*sd), mu+(5*sd), 0.001)  # This creates a sequence of numbers from mu-5*sd to mu+5*sd, at intervals of 0.001
+
+prob = dnorm(flyweight, mean=mu, sd=sd)  # this calculates the probability density for every value of Y
+
+# Make a plot with X on the x-axis and fx on the y-axis.
+# the option type = "l" says to plot it as a line graph (the default is points)  
+plot(flyweight, prob, type = "l", ylab="probability density of weight", xlab="weight (mg)", main="fruit flies")
+abline(v=0.27,col="red")
+abline(v=0.31,col="blue")
+```
+
+Calculate the probability of being in either of these two tails: 
+```{r}
+pnorm(0.27,mean=0.3,sd=0.01) + (1- pnorm(0.31,mean=0.3,sd=0.01) )
+```
+
+Or, you can use the "lower.tail = FALSE" option to calculate the probability of being above a given value.
+```{r}
+pnorm(0.27,mean=0.3,sd=0.01) + pnorm(0.31,mean=0.3,sd=0.01,lower.tail = FALSE)
+```
+
+## Week 3, topic 3: Inference about the mean
+## Westie Example
+The distribution of weights of all West Highland Terriers in the world is well approximated by a normal distribution with a mean of 18 pounds, and a standard deviation of 2 pounds.  
+
+West Highland Terriers that are heavier than 21 pounds are considered overweight. What fraction of West Highland Terriers are considered overweight? 
+
+This is just another example like the ones above. 
+
+
+```{r}
+#Plotting the probability density function for a Standard Normal Distribution. 
+mu = 18.0  # set the mean
+sd = 2.0  # set the standard deviation
+
+# whole population 
+
+weight = seq(mu-(5*sd), mu+(5*sd), 0.1)  # This creates a sequence of numbers from mu-5*sd to mu+5*sd, at intervals of 0.1
+
+prob = dnorm(weight, mean=mu, sd=sd)  # this calculates the probability density for every value of Y
+
+# Make a plot with X on the x-axis and fx on the y-axis.
+# the option type = "l" says to plot it as a line graph (the default is points)  
+plot(weight, prob, type = "l", ylab="probability density of weighteight", xlab="weight (pounds)", main="Weight of Westies")
+abline(v=21.0,col="green")
+```
+Calculate the probability of a weight greater than or equal to 21:
+```{r}
+1-pnorm(21, mean = 18, sd = 2)
+```
+or:
+```{r}
+pnorm(21, mean = 18, sd = 2, lower.tail = FALSE) # lower.tail FALSE means we want to know whats that value and above, can omit 1 -
+```
+
+
+The next part of the question, rather than asking about the weight of a random individual in the population (or about the fraction of the population), asks about the *mean of a sample of a given size*. 
+
+The distribution of weights of all West Highland Terriers in the world is well approximated by a normal distribution with a mean of 18 pounds, and a standard deviation of 2 pounds.  
+
+We record the weight of 9 randomly sampled West Highland Terriers. What is the probability that the *mean* weight of our sampled West Highland Terriers is less than 17 pounds? 
+
+The distribution of *mean* weights takes on a narrower distribution than the distribution of random values in the population. 
+
+This is the sampling distribution for the mean of a sample of 9 westies.
+
+```{r}
+#Plotting the probability density function for a Standard Normal Distribution. 
+mu = 18.0  # set the mean
+sd = 2.0  # set the standard deviation
+n = 9 # the more you increase this, the more narrow the peak
+# distribution of means, gives a more narror, if we sampled multiple times, we would get the mean
+se = sd/sqrt(n)
+
+weight = seq(mu-(5*sd), mu+(5*sd), 0.1)  
+
+prob = dnorm(weight, mean=mu, sd=se) # sd is now se
+
+# Make a plot with X on the x-axis and fx on the y-axis.
+# the option type = "l" says to plot it as a line graph (the default is points)  
+plot(weight, prob, type = "l", ylab="probability density of weighteight", xlab="weight (pounds)", main="Mean weight of n = 9 Westies")
+abline(v=17.0,col="brown")
+```
+We can calculate the probability that the mean weight of a sample size of 9 that is less than 17:
+```{r}
+pnorm(17,mean = 18, sd = 2/sqrt(9)) # sd = se = 2/sqrt(9)
+```
+
+### Student's t Distribution in R
+`pt` (`p` for "probability"): cumulative distribution function, cdf
+`qt`(`q` for "quantile"): inverse cdf
+`dt` (`d` for "density"): the density function, pdf
+`rt` (`r` for "random"): a random number from that distribution
+
+Let's compare the probability density function (pdf) of a Student's t distribution with different degrees of freedom, with the pdf of a Standard Normal Distribution:
+```{r}
+mu = 0  # set the mean
+sd = 1  # set the standard deviation
+
+x = seq(mu-(5*sd), mu+(5*sd), 0.1) 
+plot(x, dnorm(x,mean=mu,sd = sd), type = "l", ylab="probability density", xlab="x", main="")
+lines(x,dt(x,df=30),col="green")
+lines(x,dt(x,df=5),col="red")
+lines(x,dt(x,df=2),col="blue")
+
+```
+
+## Calculating Confidence Intervals
+
+
+# Quantiles, `qt`
+Quantiles are the inverse of the cumulative distribution function.  
+Whereas the cumulative distribution function tells us the probability that X is less than or equal to a specified value, quantiles tell us the value of X for which there is a given probability of getting a value that is less than or equal to that value.  For example, the 50% quantile is the value of X for which 50% of the probability is below that value, and 50% is above that value.
+The 10% quantile is the value of X for which 10% of the probability is below that value. 
+
+
+
+# The Paradise flying snake example
+Ungulation rates of snakes: 
+The sample:  0.9, 1.4, 1.2, 1.2, 1.3, 2.0, 1.4, 1.6
+Calculate the 95% Confidence interval for the mean ungulation rate
+
+```{r}
+x = seq(from=-5,to=5,by=0.1)
+fx = dt(x,df=7)
+plot(x,fx,type="l",col="black",xlab = "t", ylab = "probability density", main = "t distribution, df=7")
+abline(v=qt(0.975,df=7),col="red")
+abline(v=qt(0.025,df=7),col="blue")
+```
+We can use Quantiles, `qt` to figure out the value of t at which 2.5% of the probability is above the red line, and 2.5% of the probability is below the blue line.  
+
+```{r}
+# 97.5% quantile for a t-distribution with 7 degrees of freedom
+
+qt(0.975,df=7)
+
+```
+
+
+```{r}
+# 2.5% quantile for a t-distribution with 7 degrees of freedom
+qt(0.025,df = 7)
+```
+
+
+
+calculate the lower bound of the 95% confidence interval 
+```{r}
+ungulation = c(0.9, 1.4, 1.2, 1.2, 1.3, 2.0, 1.4, 1.6)
+n = length(ungulation) # length command counts number of values
+df = n - 1
+mean = mean(ungulation)
+se = sd(ungulation)/sqrt(n)
+lower = mean - qt(0.975,df=df)*se
+lower
+```
+or alternatively:
+```{r}
+lower = mean + qt(0.025,df=df)*se
+lower
+```
+
+calculate the upper bound of the 95% confidence interval:
+```{r}
+upper = mean + qt(0.975,df=df)*se
+upper
+
+```
+
+the t-test will give this to you automatically
+```{r}
+ungulation = c(0.9, 1.4, 1.2, 1.2, 1.3, 2.0, 1.4, 1.6)
+t.test(ungulation)
+```
+
+99% confidence interval:
+```{r}
+t.test(ungulation, conf.level = 0.99)
+```

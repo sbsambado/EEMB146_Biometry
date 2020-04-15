@@ -19,7 +19,7 @@ output: html_document
 4. Typical coding errors
  - spelling (librry != library)
  - capitilization  ( Library != library)
- - punctuation (library. != library_ )
+ - punctuation (library. != library_ ) (read_csv != read.csv)
  - open brackets
  - View() # run View() in consule or # View() after running code
  - `read.csv` not `read_csv` (it's a warning, but easier to fix it) 
@@ -32,6 +32,27 @@ output: html_document
 -- don't turn in those exercises, but you will do similar things for HW
 - Turn in code (annotated and plotted) for HW questions 1 - 3 
 
+*Remember* 
+
+How to begin a code you have no idea where to begin
+1. dataset = mammals
+2. variable = no.species
+3. specific = vertebrates
+4. function = sum/count/ ==
+
+variable_name <- argument/values
+
+`$` calls column within data frame
+
+"words" or 'words' for character data (i.e. words, letters) [should make green writting]
+
+'c()' concatenate (i.e. bring together multiple items)
+
+'  [ ] ' selecting data 
+
+'+' you need to complete a code
+
+'>' your code ran successfully!
 
  ## Today's Agenda
 
@@ -47,6 +68,8 @@ Packages needed for this lab
 install.package('readr')
 # to read in csv files
 library(readr)
+
+
 
 # if you want to use ggplot
 library(tidyverse)
@@ -99,6 +122,14 @@ Curious to learn more?
 
 *Remember* 
 
+verts <- sum(endangered$no.species)
+
+How to begin a code you have no idea where to begin
+1. dataset = mammals
+2. variable = no.species
+3. specific = vertebrates
+4. function = sum/count/ ==
+
 variable_name <- argument/values
 
 `$` calls column within data frame
@@ -107,7 +138,7 @@ variable_name <- argument/values
 
 'c()' concatenate (i.e. bring together multiple items)
 
-' [ ] ' selecting data 
+'  [ ] ' selecting data 
 
 '+' you need to complete a code
 
@@ -161,6 +192,7 @@ plot(emp_cdf, # specifying this dataset
      lines(norm_cdf, col = 'blue') # calling in norm_cdf dataset and making it blue
 legend(400, 0.4, c('Birds', 'Normal Distribution'), col = c('red', 'blue'), pch = c(19,19)) # making a legend
 # legend(location, names, color of names, shape of points)
+
 
 ```
 
@@ -330,7 +362,7 @@ hist(plant$dand_rosette_diam_cm[plant$dist_from_edge_m == "6.0m"], xlab="Dandeli
 ## b) Based on the boxplot, how do the medians and dispersion (aka spread of data) compare across different distances from the edge? Would you feel confidence concluding that the distance from the edge has a significant effect on dandelion rosette diameter?
 
 # return plot display to normal
-par(mfrow=c(3,1))
+par(mfrow=c(1,1))
 
 # Make a boxplot of dandelion rosette diameter
 boxplot(dand_rosette_diam_cm ~ dist_from_edge_m, 
@@ -392,10 +424,14 @@ plant$log_num_flowers = log(plant$num_flowers + 1)
 plant$num_flowers_sq = plant$num_flowers^2
 
 # Make histogram of data
+
+?par()
+par(mar = rep(1,1))
 par(mfrow=c(3,1))
 hist(plant$num_flowers, xlab="Number of flowers", breaks=20, main = 'original data')
 hist(plant$log_num_flowers, xlab="Log number of flowers", breaks=20, main = 'log transformed data')
 hist(plant$num_flowers_sq, xlab="Number of flowers squared", breaks=20, main = 'squared data')
+
 
 ## ANSWER: Squaring the data only scaled the data, but did nothing about changing the distribution ("increasing the right skew"). Log-transforming the data changed the distribution ("decreased the right skew of the data"). 
 
@@ -450,7 +486,7 @@ You should have 1 plot.
 ## A) What trend do you notice in the data? Is the linear trend line (green) a good representation of this trend?
 
 # make a scatter plot
-plot(plant$percent_cover ~ plant$dist_from_tree_m, xlab="Distance from tree", ylab="Percent cover",
+plot(plant$percent_cover ~ plant$dist_from_tree_m, xlab="Distance from tree",  ylab= "Percent cover",
      ylim = c(0, 110)) # extended coordinates
 # add a linear regression line `lm` function
 fit <- lm(plant$percent_cover ~ plant$dist_from_tree_m, data=plant)
