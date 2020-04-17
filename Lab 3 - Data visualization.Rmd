@@ -67,15 +67,15 @@ Separate (I will still be here to answer any questions!)
 
 Packages needed for this lab
 ```{r set up}
-install.package('readr')
+#install.package('readr')
 # to read in csv files
 library(readr)
 
 
 
 # if you want to use ggplot
-library(tidyverse)
-library(ggplot2)
+#library(tidyverse)
+#library(ggplot2)
 
 
 ```
@@ -427,8 +427,8 @@ plant$num_flowers_sq = plant$num_flowers^2
 
 # Make histogram of data
 
-?par()
-par(mar = rep(1,1))
+
+
 par(mfrow=c(3,1))
 hist(plant$num_flowers, xlab="Number of flowers", breaks=20, main = 'original data')
 hist(plant$log_num_flowers, xlab="Log number of flowers", breaks=20, main = 'log transformed data')
