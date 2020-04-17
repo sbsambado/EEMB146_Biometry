@@ -1,0 +1,132 @@
+---
+title: "Lab 4 video tutorial - R tricks & ttests"
+author: "sbsambado"
+date: "4/17/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$set(echo = TRUE)
+#knit:: opts_chunks$set(root.dir = "~/Desktop/Classes/EEMB 146 S20/EEMB146_Biometry")
+
+# watch Tatums awesome video of how to set your working directory!
+```
+
+The objectives of this video
+1. How to turn .txt file into .Rmd file
+2. Helpful R tricks
+3. T-tests in R
+
+
+## Helpful R tricks
+1. Resources
+  - Q&A forum on piazza
+  - weblinks posted on GS and piazza
+  - google really is your best friend!
+~ you don't have to know everything, just know how to troubleshoot errors!
+
+ 
+2. How to begin a code if you have no idea where to begin 
+  *Remember* 
+    variable_name <- function(argument(s))
+    
+        a. dataset: mammals
+        b. variable: no.species
+        c. specific variable: vertebrates
+        d. function: sum 
+        e. argument: " == 'yes' " 
+
+  *Helpful hints*
+      - ` ?function()`
+```{r}
+?t.test()
+?t.test()
+
+
+
+```
+
+      - `$` refers to element in column/list within a data frame
+      
+      - " quotations " for character data (should make green writting)
+      
+      - `c()` concatenate (i.e. bring together multiple items)
+      
+      - `[ ] ` selecting data 
+      
+      - `+` you need to complete a code
+      
+      - `>` your code ran successfully!
+
+
+3. Typical coding errors
+   - spelling (readr != reader)
+   - capitilization  ( readr != Readr)
+   - punctuation (read.csv != read_csv)
+   - open brackets
+   - View() # run View() in consule or # View() after running code
+   - `read.csv` not `read_csv` (it's a warning, but easier to fix it) 
+   ~ unfortunately, you will not be able to knit a document if there's an error
+        - however, the error message usually guides you to where the error is!
+   
+4. Good practice
+  - # annotate your code 
+  - Save your exercises for personal references, esp. for individual final projects
+
+## T-test in R
+
+`t.tests()` function produces a variety of t-tests
+
+1. Types of t-test
+  a. One sample t-test
+  b. Paired t-test
+  c. Two-sample t-test
+  
+  *One sample t-test*
+    - Try to find the mean of a sample (without knowing variance of population)
+        Assumes:
+          - Random variable has normal distribution
+          - The observations represent a random sample from the population
+```{r one sample t-test}
+## the one-sample t-test
+
+# base code
+# Ho: mu = 3
+t.test(y, mu = 3)
+
+# modify the code for your variables!
+t.test(dataset$sample, mu = mu)
+```
+
+  *Paired t-test*
+    - Compare means between two groups (each data point is uniquely paired with another group)
+        Assumes:
+          - The observations from each group represent a random sample from population
+          - The difference of the two observations follow a normal distribution
+```{r paired t-test}
+## paired t-test
+
+# base code
+t.test(y1, y2, paired = TRUE) # where y1 and y2 are numeric
+```
+    
+  *Two-sample t-test*
+    - Compares whether the means of two groups are signficantly different from each other
+      Assumes:
+        - Observation from each group represents a random sample from the population
+        - Observations follow a normal distribution
+        - Observations from the two groups have the same variance
+```{r two-sample t-test}
+## independent 2-group t-test
+
+# base code, 1 numeric value
+t.test(y~x) # where y is numeric and x is a binary factor
+
+# base code, 2 numeric values
+t.test(y1, y2) # where y1 and y2 are numeric
+```
+
+2. Resource
+  - 'ComparingMeansFlowchart.pptx.pdf' on GS
+
+
