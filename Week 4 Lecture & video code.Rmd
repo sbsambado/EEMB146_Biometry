@@ -199,3 +199,54 @@ f. antilog
 - must transform each individual in the same way
 - you CAN try different transformations until you ifnd one that makes the data fit the assumptions
 - you CANNOT keep trying transformations until P < 0.05
+
+
+## What to do when your assumptions are not true? (use non-parametric tests)
+
+Nonparametric tests 
+- assume less about underlying distributions
+- also called 'distribution free'
+- parametric method assumes a distribution or a parameter
+
+#Sign test: Nonparametric alternative to one-sample and paired t-test
+- nonparametric test
+  - compares data from one sample to a constant
+  - tests whether the **median** of a population equals a null hypothesized value
+  - simple: for each data point, record whether individual is above (+) or below (-) the hypothesized constant
+  - compare to a binomial distribution with p = 1/2
+```{r}
+# exact binomial test
+
+binom.test(18,25) #18 successes, 25 trials
+
+# another example
+binom.test(7,25)
+
+```
+- sign test has very low power
+- so it is quite likely to not reject a false null hypothesis (probability of type 2 error is high)
+
+#Wilcoxon signed-rank test (another non-parametric version of a one-sample t-test) has a bit more power, but requires the assumption that the population is symmetric around the mean
+
+
+Most non-parametric methods use RANKS
+- rank each data point in all samples from lowest to highest
+- lowest data point gets rank 1, next lowerest rank 2,...
+
+
+# Mann-Whitney U test compares the central tendencies of two groups using ranks
+- first, rank all individuals from both groups together in order (i.e. smallest to largest)
+- sum the ranks for all individuals in each group --> R1 and R2 (equivalent to Wilcoxon rank-sum test)
+- calculating test statistic, U
+- Assumptions
+  - both samples are random samples
+  - both pop have same shape of distribution
+
+```{r}
+benton <- c(0.29, .77, .96, .64, .7, .99, .34)
+warrenton <- c(.17,.28, .20, .37)
+
+wilcox.test(benton, warrenton)
+```
+
+## nonparametric tests are usually less powerful than parametric tests
