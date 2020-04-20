@@ -1,0 +1,201 @@
+---
+title: "Week 4 Lecture & video code"
+author: "sbsambado"
+date: "4/20/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Code for t-tests
+
+What type of data is there, and what type of t-test is appropriate to go over in R
+
+
+One- sample t-test
+- compares mean of a random sample from a normal population with the population mean proposed in a null hypothesis
+- Assumptions
+  - variabels is normally distributed
+  - the sample is a random sample
+```{r one sample t-test}
+bodytemp <- c(98.4, 99, 98, 99.1, 97.5, 98.6, 98.2, 99.2, 98.4, 98.8, 97.8, 98.8, 99.5, 97.6, 98.6, 98.8, 98.8, 99.4, 97.4, 100, 97.9, 99, 98.4, 97.5, 98.4)
+
+# null hypothesis mean
+mu0 = 98.6
+
+t.test(bodytemp, mu = mu0)
+
+```
+
+Example: Paradise flying snakes
+```{r 95% confidence interval for a mean}
+# long way of finding one sample t-test
+Y = c(0.9, 1.4, 1.2, 1.2, 1.3, 2, 1.4, 1.6) # samples
+ybar = 1.375 # estimate mean
+s = 0.324 # standard deviation
+n = 8 # sample size
+
+# find confidence intervals
+lower = ybar - qt(0.975, df =7)* s/sqrt(n)
+upper = ybar + qt(0.975, df =7)* s/sqrt(n)
+
+# other helpful command
+qt(0.975, df = 7)
+
+# or just run this command
+t.test(Y)
+```
+
+Example 1. Non Smoking Day (NSD)
+- years are your replicates
+- before NSD and on NSD are your pairs
+- it does *not* assume that the individual values are normally distributed, only the differences
+
+```{r paired t-test example 1}
+year <- seq(87, 96, by = 1)
+beforeNSD <- c(516,610,581, 586,554,632,479,583,445,522)
+onNSD <- c(540,620,599,639,607,603,519,560,515,556)
+
+# make data frame
+NSDdata <- data.frame(year, beforeNSD, onNSD)
+
+t.test(NSDdata$onNSD, NSDdata$beforeNSD, paired = TRUE)
+```
+
+Example 2: Bug spray
+- individual is replicate
+- left and right arm are paired
+```{r one sample t-test with paired data}
+# want to see if there's a difference between left and right arm that used different bug sprays
+# counts are mosquito bites
+person <- seq(1, 9, 1)
+left <- c(4,3,12,1,8,20,12,6,17)
+right <- c(2,0,8,2,2,15,5,0,18)
+diff <- left - right
+
+# applied a one sample t-test
+t.test(diff, mu = 0)
+```
+
+Testing hypotheses about the difference in two means
+
+*Two sample t-test compares the means of a numerical variable between two populations*
+- varraince of both populations is equal
+- both pops have normal distribution
+
+Example 3: frog growth on diet A vs diet B
+```{r two sample t-test}
+A <- c(5,10,8,7,9)
+B <- c(5,3,5,6,1,4)
+
+t.test(A, B, var.equal = TRUE)
+```
+
+What happens when you compared means when variances are not equal?
+*use Welch's t-test*
+- compares the means of two normally distributed populations that have unequal variances
+- procedure is same as standard 2-sample t-test, but different formulas are used to calculate the standard error and degrees of freedom
+
+- one possible method for test statistic: the F test
+  - put larger variance on  top in the numerator
+  - F has two degrees of freedom, one for numerator and one for denominator
+  - F test is very sensitive to its assumption that both distributions are normal
+  - use F test to figure out if you can run a Welsch's t-test
+    - if F > critical value then we can rejec the null hypothesis that the variances are equal
+    
+- another method is the Levene's test
+  - F test will often falsely reject null hypothesis of equal variance if one population is not normal
+  - Lavene's test is another test that can be used to test for unequal variances when samples are NOT strictly normal
+  - assumption: distribution of variable is roughly symmetrical in both populations 
+Example 4: Using frog diet data again
+```{r Welch or standard two sample t-test}
+A <- c(5,10,8,7,9)
+B <- c(5,3,5,6,1,4)
+
+# Welch two sample t-test
+# more conservative, and less powerful than standard two sample t-test
+t.test(A,B)
+
+# Two sample t-test
+# gives slightly lower p value, slightly more significant
+t.test(A, B, var.equal = TRUE)
+```
+
+Topic 4: Data Transformations
+
+Assumptions of two-sampled t-tests
+- both samples are random samples
+- both populations have normal distribution
+- the variances of both populations are equal
+  - or Welch's t-test when variances are not equal
+  
+Linear models often assume pop come from normal distribution vs binary distribution (generalized linear model i.e. count data 1/0)
+
+What to do when the assumptions are not true?
+- if sample sizes are large, sometimes the parametric tests work OK anyways
+  ~ a statistical procedure is 'robyst' if the answer it gives is not sensitive to violations of the assumptions
+- transformations
+- non-parametric tests
+- randomization and resampling
+
+*Normal approximation*
+- means of large samples are normally distributed
+- paramtetric tests on large samples work relatively well, even for non-normal data
+- rule of thumb - if n > ~ 50, the normal approx. may work
+
+*Transformation*
+- a data transformation changes each data point by some simple mathematical formula
+  - used to make non-normal data normal
+a. log- transformation
+  - a lot of low values, few high points, right skewed
+        Y' = ln[Y]
+  - useful when:
+    - variable is likely to be result of multiplication of various components
+      - a,b vs. a*b
+    - frequency distribution of data is skewed to the right
+    - variance seems to increase as mean gets larger (in comparison across groups)
+  - what to do with the 0s?
+    - add small value to every data point,
+    - but if there's a lot of zeros, this will make your data non-normal
+```{r log transformations}
+
+# example 1
+biomass <- c(1.34, 1.96, 2.49, 1.27, 1.19, 1.15, 1.29)
+hist(biomass)
+lnbiomass <- log(biomass)
+hist(lnbiomass)
+
+# example 2
+x1 <- c(68.52, 1.22, 0.57, 1.74, 22.74)
+x2 <- c(19.19, 18.67, 36.74, 31.15, 0.67)
+
+x1log <- log(x1)
+x2log <- log(x2)
+
+## Two sample t-test
+t.test(x1log, x2log, var.equal = TRUE)
+
+## Welch two sample t-test
+t.test(x1log, x2log)
+```
+b. arcsine
+  - frequently used for proportions
+      p' = arcsin[sqrt(p)]
+c. sqaure-root
+  - used on count data, when variance increases with mean
+      Y' = sqrt(Y + 1/2)
+d. square
+e. reciprocal
+f. antilog
+
+*Rules for valid transformations*
+- require the same transformation be applied to each individual
+- have one to one correspondence to original values
+- have a montonic relationship with the original values (larger values stay larger)
+
+*Choosing transformations*
+- must transform each individual in the same way
+- you CAN try different transformations until you ifnd one that makes the data fit the assumptions
+- you CANNOT keep trying transformations until P < 0.05
