@@ -381,6 +381,7 @@ boxplot(dand_rosette_diam_cm ~ dist_from_edge_m,
 
 Transformations in data analysis to make our data look more normal
 ```{r}
+
 # create a new variable, natural log + 1 (Log transformation)
 log_num_flowers <- log(plant$num_flowers + 1) # create new column 
 head(log_num_flowers) # what do the transformed numbers look like now
@@ -427,7 +428,7 @@ plant$num_flowers_sq = plant$num_flowers^2
 
 # Make histogram of data
 
-
+?lm()
 
 par(mfrow=c(3,1))
 hist(plant$num_flowers, xlab="Number of flowers", breaks=20, main = 'original data')
@@ -473,6 +474,9 @@ plot(plant$num_leaves_in_rosette ~ plant$dand_rosette_diam_cm)
 # run a linear regression
 fit <- lm(num_leaves_in_rosette ~ dand_rosette_diam_cm, data = plant)
 abline(fit, col = 'green', lwd = 3) # lwd = line width
+text(4, 30, # set where on grid you would like to add text
+     label = 'R value' # what words would you like to add to plat
+     )
 
 ```
 
@@ -487,7 +491,7 @@ You should have 1 plot.
 ```{r}
 ## A) What trend do you notice in the data? Is the linear trend line (green) a good representation of this trend?
 
-# make a scatter plot
+# make a scatter plot y ~ x 
 plot(plant$percent_cover ~ plant$dist_from_tree_m, xlab="Distance from tree",  ylab= "Percent cover",
      ylim = c(0, 110)) # extended coordinates
 # add a linear regression line `lm` function

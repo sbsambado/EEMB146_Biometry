@@ -1,0 +1,807 @@
+---
+title: "Lab 4 - t.tests"
+author: "sbsambado"
+date: "4/20/2020"
+output: html_document
+---
+
+# Announcements
+1. Lab 3 due Wednesday April 22nd by 11:59 PM
+2. Lab 4 due Wednesday April 29th by 11:59 PM
+  - Exercise 1: dominant vs. weak hand
+  - Exercise 2: Natural selection in birds
+  - Exercise 3: Robustness of t-test
+  
+3. Watch GS video 'Lab 4 video tutorial: Checking normality assumptions'
+
+#Agenda
+Together:
+1. Give background for this lab
+2. Core concepts
+3. Briefly talk about LaTex
+4. Quick HW tips
+
+Individually:
+1. Work through HW and Lab 4 exercises
+
+---- 
+
+This lab boils down to addressing the assumptions of a t-test. 
+
+There are specific assumptions for each t-test, but generally all of them assume the data is normally distributed. 
+
+However, the Central Limit Theorem, states that as the sample increases the data approzimate a normal distribution. 
+  - if we have a sample that is not normally distribution, can we use a t-test? (no) 
+  - But if we take a large enough sample from that same distribution, can we use a          t-test then? (yes)
+
+#The jist of the concepts in lab: 
+1. Distribution of data is normal
+  - we can apply many statistical tests to dataset 
+  - high statistical power (low Type II error)
+
+2. Distribution of data is non-normal
+  - Transform the data
+  - or use non-parametric statistics (lower power)
+  
+Central Limit Theorem (CLT)
+*sum or mean of a large number of measurements randomly sampled from a non-normal population is approximately normally distributed*
+
+This lab will help us decipher what category data falls in
+  a. normal distribution
+  b. non-normal distribution
+  c. sample size is large enough, that it falls under normal distribution (CLT)
+  
+How do you decipher what category data falls in?
+1. Visualize with histograms or qqPlots
+```{r}
+# if you don't know how to use these functions, run the line ?hist()
+#hist()
+#qqPlot()
+```
+
+2. Shapiro-Wilk test (normality)
+```{r}
+#shapiro.test()
+```
+
+  - H0 : you data are normally distributed 
+  - HA : data are not normall distributed
+  - if p > 0.05, we can be reasonably confident that our data are normal
+  
+ 3. Levene's test (homogeneity of variances)
+  - H0: variance between two groups are equal
+  - HA: variance between two groups are not equal
+  
+  ... if you reject the H0 of Lavene's test, use Welch's t-test
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/Desktop/Classes/EEMB 146 S20/Week 4/Lab 4/Lab 4 data-20200420 2") #to set your working directory for the whole document so you don't have to set it in each code chunk
+```
+
+# Our Quest for Truth Begins: t-test and confidence intervals  
+## Biometry, EEMB 146, Week 4  
+  
+### 1. Review of Comparing Means  
+  
+#### 1.1 One sample t-test  
+  
+When we want ot ask a question about the mean of a sample, but we do not know there true variance of the population (i.e. we have to estimate the variance from the sample) we need to use a one sample t-test. The one-sample t-test has the following assumptions:  
+  
+1. Assumes the random variable (e.g. beak width, kelp height, etc.) has a *normal distribution*  
+2. Assumes that the observations represent a *random sample* from the population  
+  
+The hypotheses for a two-sided one sample t-test are: 
+
+$H_0 : \mu = a$  
+$H_A : \mu \neq a$  
+where $a$ is your hypothezied mean.  
+  
+To test these hypotheses, calculate a t statistic using the following formula:  
+  
+$t = \frac{\bar Y - a}{s/\sqrt{n}}$  
+  
+where $s$ is the standard deviation of your sample and n is your sample size.  
+  
+The resulting t-statistic has $n-1$ degrees of freedom (df). You can test your null hypothesis in three different ways:   
+  
+  1. Get the critical t-value $(t_{\alpha(2)})$ with $n-1$ df for $\alpha = 0.05$ and compare it to your calculated t-value. Reject your null hypothesis if the absolute value of your t-value is greater than the absolute value or the critical t-value.
+  
+  2. Calculate the 95% confidence interval with the equation $\bar Y \pm t_{\alpha(2),df}SE_{\bar Y}$ and determine if $a$ (your hypothesized mean) is in the interval. Reject your null hypothesis if $a$ is not in the 95% CI.    
+  
+  3. Find the p-value associated with your critical t-value (via R or a t-table with $n-1$ df) and determine if it is less than your predetermined $\alpha$. Reject $H_0$ if $p<\alpha$  
+    
+#### 1.2 Paired t-test  
+  
+If you want to compare the means between two groups and each data point in one group is uniquely paired with a data point in another group you can use the paired t-test. Take the difference between each pair of data points and then perform a one sample t-test with $H_0 : \mu_d = 0$. Assumptions:  
+  
+  1. Assumes that the observations from each group represent a *random sample* from the population.  
+  2. Assumes that the *difference* of the two observations follow a *normal distribution*.  
+  
+#### 1.3 Two-sample t-test  
+  
+The two-sample t-test compares whether the means of two groups are significantly different form each other. This test has the following assumptions:  
+  
+  1. Assumes that the observations from *each group* represent a *random sample* from the population.  
+  2. Assumes that the observations follow a *normal distribution*.  
+  3. Assumes that the observations from the two groups have *the same variance*.    
+    
+If we ahve two groups called group 1 and group 2, the two-sided hypothes for the two-sample t-test are:  
+  
+$H_0 : \mu_1 = \mu_2$  
+$H_A : \mu_1 \neq \mu_2$  
+  
+Before we can test these hypotheses we need to ensure that our assumptions are met. You can test the normality assumption using any of the procedures that you already know (e.g. qqplots or the Shapiro Wilk statistic). To test the homogeneity (equal) of variance assumption we will use something called *Levene's Test*. The *null hypothesis* of the Levene's test is that the variance between the two groups are equal. The *alternative hypothesis* is that they are not equal.  
+If we fail to reject the *null hypothesis* of the Levene's test we can pool our variances and use a standard two-sample t-test. We would compute this t statistic using the following equations:  
+  
+$SE_{\bar Y_1 - \bar Y_2} = \sqrt{s^2_p(\frac{1}{n_1}+\frac{1}{n_2})}$  
+  
+where  
+  
+$s^2_p = \frac{df_1s^2_1+df_2s^2_2}{df_1+df_2}$  
+  
+is the pooled sample variance (described in your book). With these equations we can calculate the t statistic:  
+  
+$t = \frac{\bar Y_1 - \bar Y_2}{SE_{\bar Y_1 - \bar Y_2}}$  
+  
+where this t statistic has a df of $n_1 + n_2 - 2$.  
+  
+If we reject the *null hypothesis* of the Levene's test we use something called *Welch's t-test*. We calculate the t statistic with a similar equation as equation 7, but the denominator is changed to account for the different variances between the two groups. Moreover, the df is also calculated a bit differently. For the most part, you can ignore these technicalities. You just need to understand that a different test is used when between group variances are unequal. If possible, we would prefer our two groups to have equal variance because our statistical test will have more power.  
+Similar to the one-sample t-test, you can draw conclusions using one of the equivalent methods:  
+  
+1. Get the critical t-value $(t_{\alpha(2)})$ with $n_1 + n_2 - 2$ df (assuming equal variance) for $\alpha = 0.05$ and compare it to your calculated t-value. Reject your null hypothesis if your absolute value of your t-value is greater than the absolute value of the critical t-value.  
+
+2. Calculate the 5% confidence interval via the equation $\bar Y_1 - \bar Y_2 \pm SE_{\bar Y_1 - \bar Y_2}t_{\alpha(2),df}$ and determine if 0 is in the interval. Reject your null hypothesis if 0 is not in the 95% CI.  
+
+3. Calculate the p-value associated with your calculated t-value (via R) and determine if it is less than your predetermined $\alpha$. Reject $H_0$ if $p<\alpha$.  
+  
+### 2. Comparing means in R  
+  
+#### 2.1 One sample t-test  
+  
+Let's go through an example of how to run a one-sample t-test in R. Load in the dataset *titanic.csv*.  
+```{r}
+titanic <- read.csv('titanic.csv')
+
+```  
+This data contains the names, sexes, ages, and fates of all the passengers on the Titanic (search for Jake and Rose if you would like!). We want to ask the following question: *Is the average age of passengers on the Titanic significantly different than 18 years old?*  
+  
+Let's perform the follwing steps:  
+  
+1. Visualize the data. This should always be the first step in data analysis. Make a histogram of all the passenger's ages. Remeber this is what is referred to as *exploratory data analysis* or EDA. We need to visually check what the data look like!  
+```{r}
+age <- hist(titanic$Age)
+```  
+  
+2. Check the assumptions of the single sample t-test: 
+(1) are the data a random sample? 
+(2) are the ages normally distributed? 
+
+We can check (2) using the skills we learned last week (Shapiro-Wilk, $p<0.05$). However, the central limit theorem tells us that the distribution of sample means from 633 observations will be normal (test if you would like), so we are justified using the one sample t-test.  
+```{r}
+# data come from normal distribution data
+# p < 0.05, not likely to come from normal distribution
+
+
+# test 1
+shapiro.test(titanic$Age) # data not normal
+
+# test 2
+hist(titanic$Age) # data are kinda normal result
+
+# test 3
+boxplot(titanic$Age) # data are kinda normal
+
+# test 4
+#install.packages('car') # if first time using package
+library(car)
+
+qqPlot(titanic$Age) # data are kinda normal
+  # qqplot is different, don't use this
+
+# What is a qqPlot doing?
+  # R takes actual data, calculates mean & variance, generates points from your data,       plots your data against perfect normally distributed data
+
+# How to read a qqPlot
+  # xaxis -> quantiles
+  # yaxia -> is your actual data
+  
+  # points are your data
+  # center, solid blue is 1:1 line
+  # dashed lines are 95% CI interval
+
+# How to interpret a qqPlot
+  # if data are perfectly normally distributed, they would fall along 1:1 lines
+  # look at 95 CI, are there severe deriviations from this?
+  # qqPlot will also label outliers
+
+## titanic$Age looks normally distributed
+
+
+## What would it look like if it wasn't normal?
+
+qqPlot(rpois(100,1)) # big deviation from normality
+
+
+# How do we check if our data is normal?
+  # shapiro says no (test 1), 3 metrics (test 2-4) say they are
+  # However, CTL.
+    # if any distribution and we randomly generate 100 points from rpois, 100 times, and       take 100 means, those means would be normally distributed
+    # if your sample is big, you can ignore not perfect and call it normal
+    # 'big' is loosely defined >= 50 observations
+
+# Conclusion: our data is normal enough to run t.test
+
+```
+
+3. Specify $H_0 : \mu = 18$ and $H_A : \mu \neq 18$ 
+  
+4. Perform the t-test using R.  
+```{r} 
+# the one-sample t-test. modify the code for your variables!
+#t.test(dataset$sample, mu=18) # self-check: why mu = 18?
+
+t.test(titanic$Age, mu = 18)
+```  
+From this information we can reject our $H_0$ using three equivalent methods:  
+   (1) Get the critical two-sided t-value for $\alpha = 0.05$ and $df = 632$:  
+```{r}
+# getting the critical two-sided t-value for alpha = 0.05 and df = 632
+qt(0.025, 632) # self-check: why 0.025 and not 0.05?
+```  
+   You should see the absolute value is 1.9637. This is less than the absolute value of our calculated t-value (22.5095), so we can reject our null hypothesis at $\alpha=0.05$.
+   
+   (2) Look at the 95% confidence interval generated from the single-sample t-test. Because this interval does not include 18 we can reject our null hypothesis at $\alpha=0.05$.  
+```{r}
+t.test(titanic$Age)
+```
+   
+   
+   (3) Our exact p-value is $p<2.22e^{-16}$ which tells us the probability of getting a result as extreme or more extreme than $\bar Y = 31.19$ years old under our null hypothesis that $\mu = 18$. We can reject our null hypothesis on this critera.  
+  
+We can conclude that the mean age of passengers on the Titanic was significantly greater than 18 years old!  
+  
+#### 2.2 Two sample t-test  
+  
+Women and children first?! That was the soceital norm when the Titanic sank. Therefore, we might expect a *difference in age between passengers that survived and those that did not*. We can test this using a two-sample t-test and the following proceedure:  
+  
+1. Visualize the data. Make a boxplot of age versus survival:  
+```{r}
+?boxplot
+survival <- boxplot(titanic$Age ~ titanic$Survive,
+                    xlab = 'survival status',
+                    ylab = 'age')
+```  
+  
+2. Check the assumptions of the two sample t-test:
+    + Check the assumption of normality to verify that each group is normally distributed. To do this, look at the boxplot. The median appears to be in the center for both boxes indicating the data is probably normal. 
+    + We could also check with a Q-Q plot and the Shapiro-Wilk test:  
+```{r}
+# Quantile-Qauntile plot is graphical technique to determine if two data sets come from populations with a common distribution. 
+
+# Q-Q plot separated by group (surviving, yes or no). CHANGE THE VARIABLE NAMES IF NEEDED~!
+
+#install.packages('car')
+library(car) # load the package before you use it
+
+with(titanic, qqPlot(Age[Survive == "no"])) #, dist="norm", id.method="y", id.n=0,labels=rownames(titanic)))# did you name titanic.csv "titanic"? if not, change it here
+with(titanic, qqPlot(Age[Survive == "yes"])) #, dist="norm", id.method="y", id.n=0,labels=rownames(titanic))) # did you name titanic.csv "titanic"? if not, change it here
+
+# Shapiro-Wilk test
+with(titanic, shapiro.test(Age[Survive == "yes"]))
+with(titanic, shapiro.test(Age[Survive == "no"]))
+```  
+    + Check if each group has the same variance:  
+```{r}
+# Levene's test: response variable, group variable
+leveneTest(titanic$Age, titanic$Survive)
+```  
+Notice that $p=0.02407$. We therefore reject our null hypothesis that the variances are equal.  
+  
+3. Specify $H_0 : \mu_{survive} = \mu_{casualty}$ OR $H_0 : \mu_{survive} - \mu_{casualty} = 0$ and $H_A : \mu_{survive} \neq \mu_{casualty}$ OR $H_A : \mu_{survive} - \mu_{casualty} \neq 0$   
+  
+4. Use R to perform a two-sample t-test with unequal variances:  
+```{r}
+# two-sample t-test with unequal variances (Welch's two-sample t-test)
+
+#first, you have to subset the two groups
+lived <- subset(titanic, Survive=="yes")
+died <- subset(titanic, Survive=="no")
+
+#now, run the t-test on those groups
+t.test(lived$Age, died$Age, var.equal = FALSE) # note that 95% CI and a two-sided hypothesis are default settings, meaning we don't have to set them here!
+```  
+Based on the output above, we see that $p=0.04655$ is less than $p=0.05$ and our 95% CI does not contain 0. Therefore, we can reject our null hypothesis and say that there is in fact a significant difference between the means.  
+
+If we want to test, say, that the mean age of the survivors is signficiantly *less* than the mean age of the casualties, we could run a one-sided test:  
+```{r}
+t.test(lived$Age, died$Age, alternative="less", var.equal = FALSE) # here, we specify the one-sided "less" hypothesis, since two-sided is the default setting and we want to override that.
+```  
+Now, we find that there is a statistical difference in the age of survivors - *the suvivors were statistically younger than those that died*.  
+  
+***
+  
+### Exercises - a.k.a Homework
+  
+All exercises are due next week before lab section. Use R Markdown to turn in all your exercises and upload the necessary code and answers either an an HTML or PDF file to Gauchospace. For all exercises, alpha = 0.05.  
+  
+#### Exercise 1: Dominant hand vs/ weak hand dexterity  
+  
+Let's do a quick exercise to generate some data!  
+  
+* Partner up. Get a piece of paper and a pencil and load up the stopwatch app on your phone.  
+* Have your partner time how long it takes you to legibly write "the search for the truth" with your dominant hand and your weak hand.  
+* For the online poriton of this class, use previosuly collected data that is in Gauchospace as *dexterity.csv*.  
+  
+Use a paired t-test to answer the following question: *Does writing the above phrase take a different amount of time with your weak v. dominant hand?* Specifically, include the following information in your homework, along will all necessary code:  
+```{r}
+# upload code
+dexterity <- read.csv('dexterity.csv')
+names(dexterity)
+```
+
+(a.) Clearly *state* your null and alternative hypotheses of your paired t-test.  
+```{r}
+# null : mu_dominant = mu_weak
+# no difference between the time it takes to write 'the search for truth' with dominant vs. weak hand
+# alternative: mu_dominant /= mu_weak
+```
+
+(b.) Visualize your data in a meaningful way. 
+```{r}
+# preferred to plot difference (boxplot or histogram)
+boxplot(dexterity$dominant_hand_s, dexterity$weak_hand_s, ylab = 'time')
+
+# not ideal way
+par(mfrow = c(1,2))
+hist(dexterity$dominant_hand_s)
+hist(dexterity$weak_hand_s)
+par(mfrow = c(1,1))
+```
+
+(c.) Determine if the data are normally distributed and, if not, whether you think the Central Limit Theorem will allow you to use a statistical test that assumes normality. Include both a Q-Qplot and a Shapiro Wilk statistic.  
+  + Hint: to do this you will need to create a new variable that is the difference between each person's weak hand and dominant hand and test whether this new variable is normally distributed using a Q-Qplot and a Shapiro Wilk test.  
+```{r}
+# two-sample t-test with unequal variances (Welch's two-sample t-test)
+?subset()
+#first, you have to subset the two groups
+dominant <- dexterity$dominant_hand_s
+weak <- dexterity$weak_hand_s
+diff <- dominant - weak
+
+qqPlot(diff)
+shapiro.test(diff)
+
+#now, run the t-test on those groups
+t.test(dexterity$dominant_hand_s, dexterity$weak_hand_s, var.equal = FALSE) # note that 95% CI and a two-sided hypothesis are default settings, meaning we don't have to set them here!
+```
+  
+(d.) Regardless of whether or not you think the assumptions of the t-test hold, *report* the 95% confidence interval for the paired t-test. Use the 95% CI to reject or fail to reject your null hypothesis. Be specific as to why you do one or ther other and *state* your conclusions about the dominant v. weak hand dexterity.
+```{r}
+t.test(dexterity$dominant_hand_s, dexterity$weak_hand_s, paired = TRUE)
+```
+
+#### Exercise 2: Natural selection in birds  
+  
+In 1898, Hermon Bumpus collected data on one of the first examples of natural selection directly observed in nature. Immediately following a bad winter storm, 136 English house sparrows were collected and brought indoors. Of these, 72 subsequently recovered, but 64 died :(. Bumpus made several measurements on all of the birds, and he was able to demonstrate strong natural selection on some of the traits as a result of this storm!  
+Bumpus published all of his data, and you can find them in the file *bumpus.csv*. Test whether the birds that *survived or died* (survival) differeed in *total length* (total_length_mm). Specifically, include the following in your homework, along with all necessary code:  
+```{r}
+# import data set
+bumpus <- read.csv('bumpus.csv')
+```
+
+(a.) Clearly *state* your null and alternative hypotheses of your two-sample t-test. 
+```{r}
+# null : mu_alive = mu_dead
+# no significant difference in mean bird lengths between alive or dead birds
+
+# alternative : mu_alive /= mu_dead
+```
+
+(b.) Visualize your data in some meaningful way, and *explain* what information you get from the visualization. Include this plot in your report.  
+```{r}
+boxplot(total_length_mm~survival, data = bumpus, id.method = 'y')
+# shows that alive birds seem to be smaller than dead birds
+```
+
+(c.) Check whether the normality assumption is valid for the two-sample t-test using the procedure described earlier. Include the Shapiro-Wilk p-value and the Q-Qplot and *explain* whether or not the normality assumption is valid.  
+```{r}
+# Shapiro-wilk normality test
+with(bumpus, shapiro.test(total_length_mm[survival == 'no']))
+
+with(bumpus, shapiro.test(total_length_mm[survival == 'yes']))
+# residuals are not normal
+
+
+# Q-Qplot
+with(bumpus, qqPlot(total_length_mm[survival == "no"], dist ='norm'))
+
+with(bumpus, qqPlot(total_length_mm[survival == 'yes'], dist = 'norm'))
+
+# we are going to pretend that both classes are normally distributed
+
+## ANSWER: The qqPlot and Shapiro-Wilk statistic show that for one of the classes(survival =='yes') the residuals are not quite normal. However, for this scenarior we are going to pretend that both classes are normally distributed. 
+
+```
+
+(d.) Test whether the trait has equal variance between dead and alive birds using a Levene's Test. *Report* the results of your Levene's test. Based on the results, *state* whether the groups have equal or unequal variances.  
+```{r}
+# testing some assumptions about homoegeneity of variance
+with(bumpus, tapply(total_length_mm, survival, var, na.rm = TRUE))
+
+# Levene's test for homogeneit of variance (center = 'median')
+leveneTest(total_length_mm ~ survival, data = bumpus, center = 'median')
+
+# ANSWER: because p = 0.1989 in levene's test, we do not have significant evidence to conclude that the variances between dead and alive birds are different. We will assume equal variance.
+
+```
+
+(e.) Perform the appropriate two-sample t-test and display your results. Clearly *state* your conclusion from the two-sample t-test in terms of how the trait affects a bird's survival during winter storms.  
+```{r}
+t.test(total_length_mm~survival, alternative = 'two.sided', conf.level = 0.95, var.equal = TRUE, data = bumpus)
+
+# ANSWER: From the two-sampled t-test, we see that the p-vale = 0.003348 which is less than our level of significance or alpha of 0.05. Therefore, we reject our null hypothesis that dead and alive birds have equal body lengths and conclude that birds that survived have a significant difference in size than those that died
+```
+
+  
+#### Exercise 3: Robustness of the t-test  
+  
+The t-test is fairly robust to its assumptions. This means that even when the assumptions are not correct, the t-test often performs quite well. Remeber that the two-sample t-test assumes that the variables have a normal distribution in the populations, that the variance of those distributions is the same in the two populations, and that the two samples are random samples.  
+  
+To get started on this exercise, open the script *robustness.R*. This script allows you to test how robust the results of t-test are to data that violate the assumptions. First, you specify what the true distributions look like. You can do this by altering the following code in the script file you have loaded (NOTE: DO NOT TRY TO COPY AND PASTE THE CODE BELOW):  
+```{r}
+### THESE ARE THE PARAMETERS YOU WILL BE CHANGING ###
+## POPULATION 1
+MEAN1 = 1 # Mean of population 1, should be positive !
+SD1 = 1 # Standard deviation of population 1
+SAMPLE_SIZE1 = 5 # Number of samples you are drawing from the population
+SKEWED1 = FALSE # Either TRUE or FALSE
+## POPULATION 2
+MEAN2 = 1 # Mean of population 2, should be positive !
+SD2 = 1 # Standard deviation of population 2
+SAMPLE_SIZE2 = 5 # Number of samples you are drawing from the population
+SKEWED2 = FALSE # Either TRUE or FALSE
+```   
+These are the parameters that specify the shape of the true populations. To start, run all the code in the script using *Run > Run all*. Two things hsould happen: (1) you should see a plot pop up that show you the shape of your two distributions, and (2) R will output either your type I error if your true means are the same or your type II error if your true means are different. You should see something like:  
+  
+[1] "Your true TYPE I ERROR RATE is: 0.0498"  
+  
+This value should be close to 0.05 when the assumption are met, which is our pre-set type I error $(\alpha = 0.05)$.  
+
+Here is what just happened. R just artificially created 5,000 samples of 5 individuals each from both populations, and ran 5000 t-tests comparing the means. It tallied the number of significant and non-significant t-tests. In this case, both distributions are normal and the variances are equal, just as assumed by the t-test. We expect the t-test to work quite well in this case.  
+
+Take a moment to think about what "working well" means. If the null hypothesis is true, then the Type 1 error rate given by the simulation should be close to our state Type I error rate, $\alpha$. *Remember that Type I error is falsely rejecting a true null hypothesis*. An inflated Type I error rate means that we falsely reject the null hypothesis more than our pre-specified rate $\alpha$. Look at the following cases and their effects on the results of the two-sample t-test, and include these answers in your homework:  
+  
+(a.) *Unequal standard deviation, equal sample size*. Make the standard deviations of the two populations unequal, with SD1=1 and SD2=5. Leave everything else as is. Run the simulation using Run > Run all and *report* your Type I Error Rate in your homework. Notice how it changes relative to the expected Type I error.  
+```{r}
+## POPULATION 1
+MEAN1 = 1 # Mean of population 1, should be positive !
+SD1 = 1 # Standard deviation of population 1
+SAMPLE_SIZE1 = 5 # Number of samples you are drawing from the population
+SKEWED1 = FALSE # Either TRUE or FALSE
+## POPULATION 2
+MEAN2 = 1 # Mean of population 2, should be positive !
+SD2 = 5 # Standard deviation of population 2
+SAMPLE_SIZE2 = 5 # Number of samples you are drawing from the population
+SKEWED2 = FALSE # Either TRUE or FALSE
+
+### DO NOT ENTER ANYTHING BELOW THIS LINE
+#############################################################
+#  All the code below this line is the simulation
+
+## Make plots of the populations
+
+vals = seq(-20, 20, len=100)
+
+par(mfrow=c(1,2))
+
+if(!SKEWED1){
+    plot(vals, dnorm(vals, mean=MEAN1, sd=SD1), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 1", ylab="Density", xlab="x", col="red")
+} else{
+    plot(vals, dexp(vals, rate=1 / MEAN1), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 1", ylab="Density", xlab="x", col="red")
+}
+
+if(!SKEWED2){
+    plot(vals, dnorm(vals, mean=MEAN2, sd=SD2), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 2", ylab="Density", xlab="x", col="blue")
+} else{
+    plot(vals, dexp(vals, rate=1 / MEAN2), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 2", ylab="Density", xlab="x", col="blue")
+}
+
+
+## RUN THE SIMULATION
+SIM=5000  # Number of simulations
+alpha = 0.05  # TYPE I ERROR RATE
+
+if(!SKEWED1){
+    pop1_results = matrix(rnorm(SIM * SAMPLE_SIZE1, mean=MEAN1, sd=SD1),
+                            nrow=SAMPLE_SIZE1, ncol=SIM)
+} else{
+    pop1_results = matrix(rexp(SIM * SAMPLE_SIZE1, rate=1 / MEAN1),
+                            nrow=SAMPLE_SIZE1, ncol=SIM)
+
+}
+
+if(!SKEWED2){
+    pop2_results = matrix(rnorm(SIM * SAMPLE_SIZE2, mean=MEAN2, sd=SD2),
+                            nrow=SAMPLE_SIZE2, ncol=SIM)
+} else{
+    pop2_results = matrix(rexp(SIM * SAMPLE_SIZE2, rate=1 / MEAN2),
+                            nrow=SAMPLE_SIZE2, ncol=SIM)
+
+}
+
+significant = array(NA, dim=SIM)
+for(i in 1:SIM){
+
+    p_val = t.test(pop1_results[,i], pop2_results[,i], var.equal=TRUE)$p.value
+    significant[i] = p_val < alpha
+
+}
+
+# PRINT YOUR RESULTS
+if(MEAN1 == MEAN2){
+    print(paste("Your true TYPE I ERROR RATE is:", sum(significant) / SIM))
+} else {
+    print(paste("Your TYPE II ERROR RATE is: ",
+                    (length(significant) - sum(significant)) / SIM))
+}
+
+
+```
+(a.) ANSWER:TYPE I ERROR RATE is: 0.0696
+
+(b.) *Unequal standard deviation, unequal sample size*. Keep the standard devations unequal (that is, 1 and 5) and make the sample size of the first population 25 (SAMPLE_SIZE = 25). Leave the second sample at 5 individuals. *Report* your Type I Error Rate.  
+```{r}
+## POPULATION 1
+MEAN1 = 1 # Mean of population 1, should be positive !
+SD1 = 1 # Standard deviation of population 1
+SAMPLE_SIZE1 = 25 # Number of samples you are drawing from the population
+SKEWED1 = FALSE # Either TRUE or FALSE
+## POPULATION 2
+MEAN2 = 1 # Mean of population 2, should be positive !
+SD2 = 5 # Standard deviation of population 2
+SAMPLE_SIZE2 = 5 # Number of samples you are drawing from the population
+SKEWED2 = FALSE # Either TRUE or FALSE
+
+### DO NOT ENTER ANYTHING BELOW THIS LINE
+#############################################################
+#  All the code below this line is the simulation
+
+## Make plots of the populations
+
+vals = seq(-20, 20, len=100)
+
+par(mfrow=c(1,2))
+
+if(!SKEWED1){
+    plot(vals, dnorm(vals, mean=MEAN1, sd=SD1), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 1", ylab="Density", xlab="x", col="red")
+} else{
+    plot(vals, dexp(vals, rate=1 / MEAN1), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 1", ylab="Density", xlab="x", col="red")
+}
+
+if(!SKEWED2){
+    plot(vals, dnorm(vals, mean=MEAN2, sd=SD2), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 2", ylab="Density", xlab="x", col="blue")
+} else{
+    plot(vals, dexp(vals, rate=1 / MEAN2), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 2", ylab="Density", xlab="x", col="blue")
+}
+
+
+## RUN THE SIMULATION
+SIM=5000  # Number of simulations
+alpha = 0.05  # TYPE I ERROR RATE
+
+if(!SKEWED1){
+    pop1_results = matrix(rnorm(SIM * SAMPLE_SIZE1, mean=MEAN1, sd=SD1),
+                            nrow=SAMPLE_SIZE1, ncol=SIM)
+} else{
+    pop1_results = matrix(rexp(SIM * SAMPLE_SIZE1, rate=1 / MEAN1),
+                            nrow=SAMPLE_SIZE1, ncol=SIM)
+
+}
+
+if(!SKEWED2){
+    pop2_results = matrix(rnorm(SIM * SAMPLE_SIZE2, mean=MEAN2, sd=SD2),
+                            nrow=SAMPLE_SIZE2, ncol=SIM)
+} else{
+    pop2_results = matrix(rexp(SIM * SAMPLE_SIZE2, rate=1 / MEAN2),
+                            nrow=SAMPLE_SIZE2, ncol=SIM)
+
+}
+
+significant = array(NA, dim=SIM)
+for(i in 1:SIM){
+
+    p_val = t.test(pop1_results[,i], pop2_results[,i], var.equal=TRUE)$p.value
+    significant[i] = p_val < alpha
+
+}
+
+# PRINT YOUR RESULTS
+if(MEAN1 == MEAN2){
+    print(paste("Your true TYPE I ERROR RATE is:", sum(significant) / SIM))
+} else {
+    print(paste("Your TYPE II ERROR RATE is: ",
+                    (length(significant) - sum(significant)) / SIM))
+}
+
+```
+(b.) ANSWER: TYPE I ERROR RATE is: 0.375
+
+
+(c.) *Skew, equal sample size*. Set the standard deviations of both populations to 1, the means of both populations to 4, and the sample size of both populations to 5. Change the skew of the second population to true (SKEWED2 = TRUE). *Report* your Type I Error Rate.
+```{r}
+## POPULATION 1
+MEAN1 = 4 # Mean of population 1, should be positive !
+SD1 = 1 # Standard deviation of population 1
+SAMPLE_SIZE1 = 5 # Number of samples you are drawing from the population
+SKEWED1 = FALSE # Either TRUE or FALSE
+## POPULATION 2
+MEAN2 = 4 # Mean of population 2, should be positive !
+SD2 = 1 # Standard deviation of population 2
+SAMPLE_SIZE2 = 5 # Number of samples you are drawing from the population
+SKEWED2 = TRUE # Either TRUE or FALSE
+
+### DO NOT ENTER ANYTHING BELOW THIS LINE
+#############################################################
+#  All the code below this line is the simulation
+
+## Make plots of the populations
+
+vals = seq(-20, 20, len=100)
+
+par(mfrow=c(1,2))
+
+if(!SKEWED1){
+    plot(vals, dnorm(vals, mean=MEAN1, sd=SD1), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 1", ylab="Density", xlab="x", col="red")
+} else{
+    plot(vals, dexp(vals, rate=1 / MEAN1), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 1", ylab="Density", xlab="x", col="red")
+}
+
+if(!SKEWED2){
+    plot(vals, dnorm(vals, mean=MEAN2, sd=SD2), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 2", ylab="Density", xlab="x", col="blue")
+} else{
+    plot(vals, dexp(vals, rate=1 / MEAN2), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 2", ylab="Density", xlab="x", col="blue")
+}
+
+
+## RUN THE SIMULATION
+SIM=5000  # Number of simulations
+alpha = 0.05  # TYPE I ERROR RATE
+
+if(!SKEWED1){
+    pop1_results = matrix(rnorm(SIM * SAMPLE_SIZE1, mean=MEAN1, sd=SD1),
+                            nrow=SAMPLE_SIZE1, ncol=SIM)
+} else{
+    pop1_results = matrix(rexp(SIM * SAMPLE_SIZE1, rate=1 / MEAN1),
+                            nrow=SAMPLE_SIZE1, ncol=SIM)
+
+}
+
+if(!SKEWED2){
+    pop2_results = matrix(rnorm(SIM * SAMPLE_SIZE2, mean=MEAN2, sd=SD2),
+                            nrow=SAMPLE_SIZE2, ncol=SIM)
+} else{
+    pop2_results = matrix(rexp(SIM * SAMPLE_SIZE2, rate=1 / MEAN2),
+                            nrow=SAMPLE_SIZE2, ncol=SIM)
+
+}
+
+significant = array(NA, dim=SIM)
+for(i in 1:SIM){
+
+    p_val = t.test(pop1_results[,i], pop2_results[,i], var.equal=TRUE)$p.value
+    significant[i] = p_val < alpha
+
+}
+
+# PRINT YOUR RESULTS
+if(MEAN1 == MEAN2){
+    print(paste("Your true TYPE I ERROR RATE is:", sum(significant) / SIM))
+} else {
+    print(paste("Your TYPE II ERROR RATE is: ",
+                    (length(significant) - sum(significant)) / SIM))
+}
+```
+(c.) ANSWER:  TYPE I ERROR RATE is: 0.1222
+
+(d.) Finally, set the sample size equal to 25 for each population and keep the means equal. Try two or three combinations that you think will give you an inflated Type I Error Rate (there is no right answer here!). Based on what you find, do you think that the t-test is robust to violations of its assumptions if your sample size is large enough? *Explain* why or why not based on the value of your type I error rate.
+```{r}
+## POPULATION 1
+MEAN1 = 4 # Mean of population 1, should be positive !
+SD1 = 1 # Standard deviation of population 1
+SAMPLE_SIZE1 = 25 # Number of samples you are drawing from the population
+SKEWED1 = FALSE # Either TRUE or FALSE
+## POPULATION 2
+MEAN2 = 4 # Mean of population 2, should be positive !
+SD2 = 5 # Standard deviation of population 2
+SAMPLE_SIZE2 = 25 # Number of samples you are drawing from the population
+SKEWED2 = TRUE # Either TRUE or FALSE
+
+### DO NOT ENTER ANYTHING BELOW THIS LINE
+#############################################################
+#  All the code below this line is the simulation
+
+## Make plots of the populations
+
+vals = seq(-20, 20, len=100)
+
+par(mfrow=c(1,2))
+
+if(!SKEWED1){
+    plot(vals, dnorm(vals, mean=MEAN1, sd=SD1), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 1", ylab="Density", xlab="x", col="red")
+} else{
+    plot(vals, dexp(vals, rate=1 / MEAN1), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 1", ylab="Density", xlab="x", col="red")
+}
+
+if(!SKEWED2){
+    plot(vals, dnorm(vals, mean=MEAN2, sd=SD2), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 2", ylab="Density", xlab="x", col="blue")
+} else{
+    plot(vals, dexp(vals, rate=1 / MEAN2), type="l", ylim=c(0, 0.5),
+                    main="Shape of population 2", ylab="Density", xlab="x", col="blue")
+}
+
+
+## RUN THE SIMULATION
+SIM=5000  # Number of simulations
+alpha = 0.05  # TYPE I ERROR RATE
+
+if(!SKEWED1){
+    pop1_results = matrix(rnorm(SIM * SAMPLE_SIZE1, mean=MEAN1, sd=SD1),
+                            nrow=SAMPLE_SIZE1, ncol=SIM)
+} else{
+    pop1_results = matrix(rexp(SIM * SAMPLE_SIZE1, rate=1 / MEAN1),
+                            nrow=SAMPLE_SIZE1, ncol=SIM)
+
+}
+
+if(!SKEWED2){
+    pop2_results = matrix(rnorm(SIM * SAMPLE_SIZE2, mean=MEAN2, sd=SD2),
+                            nrow=SAMPLE_SIZE2, ncol=SIM)
+} else{
+    pop2_results = matrix(rexp(SIM * SAMPLE_SIZE2, rate=1 / MEAN2),
+                            nrow=SAMPLE_SIZE2, ncol=SIM)
+
+}
+
+significant = array(NA, dim=SIM)
+for(i in 1:SIM){
+
+    p_val = t.test(pop1_results[,i], pop2_results[,i], var.equal=TRUE)$p.value
+    significant[i] = p_val < alpha
+
+}
+
+# PRINT YOUR RESULTS
+if(MEAN1 == MEAN2){
+    print(paste("Your true TYPE I ERROR RATE is:", sum(significant) / SIM))
+} else {
+    print(paste("Your TYPE II ERROR RATE is: ",
+                    (length(significant) - sum(significant)) / SIM))
+}
+```
+
+(d.) ANSWER: *Remember that Type I error is falsely rejecting a true null hypothesis*. This value should be close to 0.05 when the assumption are met, which is our pre-set type I error $(\alpha = 0.05)$.  
+
+
+*After setting both the sample size to 25, I could not get a type I error rate greater than about 0.07.*
+  - this indicates that if I have a pretty big sample size (25 or greater) the t-test will be pretty robut to it's assumptions. In other words, I won't have to worry too much about falsely rejecting a true H0.
+  
+
+
+
+
