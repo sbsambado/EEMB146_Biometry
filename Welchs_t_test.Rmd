@@ -1,0 +1,120 @@
+---
+title: "Welch's t-test, unequal variances, in R"
+output: pdf_document
+---
+
+## Goals
+1. Illustrate testing for unequal variances in R
+1. Illustrate running a Welch's t-test R
+
+### tests for unequal variance
+The two-sample t-test tests the hypothesis that the means of 2 groups are equal. It assumes that the two groups have equal variances. In the video lecture, I described the *F test* to test whether 2 variances are equal.  I went through this test because it's relatively easy to describe. There are, however, better alternatives to the F test, such as *Levene's test* for homogeneity of variances.  I'll go through both of these here. 
+
+#Let's create some fake data to illustrate this test. 
+We'll create one variable `x1` that has mean = 10, and sd = 3, and a second variable `x2` that has mean = 11, and sd = 3.5 . Let's choose a sample size of n = 10 for both variables, assume that both variables are normally distributed. 
+
+-Ho mean of group 1 = group 2
+-statistic test = t
+-difference between means should follow a t distribtion if there is no difference between the two means
+- two sample t-test vs welsch's test make different assumptions
+  - two sample: variance between two groups same
+  - welsch's: variance between two groups are not the same
+    - less power, but if difference is that small and do find that increase in power from regular two sample, it may be a fragile sample
+    
+Lavene > F test
+- F test is looking at ratio of two varainces, follows F distribution
+```{r}
+# two sample default is welsch's t-test unless you specify you want regular two sample t-test
+#t.test(y1, y2, paired = FALSE, var.equal = TRUE) # two sample test
+```
+
+
+```{r}
+# create fake data set to illustrate tests for equal variances
+
+n = 10 # set the sample size
+
+# generate random data for x1
+x1 = rnorm(n, mean = 10, sd = 3)
+x1
+var(x1)
+
+# generate random data for x2
+x2 = rnorm(n, mean = 11, sd = 3.5)
+x2
+var(x2)
+```
+
+## F test to compare the variances of two groups
+
+We can run the F test to compare variances by using the `var.test` command.
+This is thesing the null hypothesis that the variance of `x1` is equal to the variance of `x2`. 
+```{r}
+# compare variances, before performing t-test
+
+# to create F statistic, compared to F distribution with 9,9 df
+var.test(x1,x2)
+
+# this is a small value for F
+# 2 df for numerator and denominator
+
+# variances look similar enough, we can do two sample t-test
+```
+
+Because we are all using random data, your answer won't be exactly the same as mine.  But, in my case the F test does not reject the null hypothesis that the variances of x1 and x2 are the same. That is, even though we used different variances to generate the 2 datasets, there is not enough evidence to suggest that the two variances are different. 
+
+> Try making the variances of the two groups more different, and/or try increasing the sample size for the two groups, to see what conditions lead to the F test concluding that the variances of the two groups are different. 
+## Levene's test to compare the variances of two groups
+
+The function `leveneTest`, which runs Levene's test for homogeneity of variances is in the R packages `car`.  
+
+We need to download and install the package `car` before we can run it for the first time. We can use the `install.packages` command to do this. 
+
+$ Note: I have commented out the install.packages function in order to knit this document.  You will need to delete the `#` sign before `install.packages` in order to run it. $
+```{r}
+#install.packages("car")
+```
+
+We can now load the car package into R, using the library command:
+```{r}
+# levene test is in car package
+library(car)
+```
+
+Levene's test expects the data to be in long format, in a dataframe.  
+Let's create a dataframe from the data for x1 and x2 that we generated above. 
+
+```{r}
+# lavene test has to read from dataframe
+mydata <- data.frame(group=c(rep("x1",n), rep("x2",n)), value = c(x1, x2))
+mydata
+```
+
+Now we can run Levene's test to test the null hypothesis that the variance for group x2 is the same as the variance for group x2. 
+
+```{r}
+# value is a function of group
+leveneTest(value~group, data=mydata)
+
+# says they're different
+# this is big F value
+# proabblty they have equal variances is very small
+```
+
+Again, because we are all using random data, your answer won't be exactly the same as mine.  But, in my case Levene's test does not reject the null hypothesis that the variances of x1 and x2 are the same. That is, even though we used different variances to generate the 2 datasets, there is not enough evidence to suggest that the two variances are different. 
+
+
+> Try making the variances of the two groups more different, and/or try increasing the sample size for the two groups, to see what conditions lead to Levene's test concluding that the variances of the two groups are different. 
+
+```{r}
+
+# welsch's tst
+t.test(x1, x2) # assumed that variances are not equal so don't have to specify var.equal = FALSE
+
+# t tst says we fail to reject the H0
+```
+```{r}
+# two sampled t-test
+t.test(x1, x2, var.equal = TRUE)
+```
+
