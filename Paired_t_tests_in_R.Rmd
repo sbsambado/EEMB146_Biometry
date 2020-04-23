@@ -1,0 +1,108 @@
+---
+title: "Paired t-tests in in R"
+author: "sbsambado"
+output: pdf_document
+---
+
+## Goals
+1. To illustrate running a paired t-test in R
+
+## Paired t-test
+
+### No Smoking Day: 
+Let's run a paired t-test on the data from the No Smoking Day example that I talked about in the video lecture.  
+```{r}
+# import Non Smoking Day (NSD) data
+NSDdata <- read.csv("~/Desktop/NSD_data.csv",header = TRUE)
+NSDdata
+
+```
+
+We will do a paired t-test on the difference betwen the number of injuries on NSD (`OnNSD`) and the number of injuries on the same day of the week one week before NSD (`BeforeNSD`).
+Each data point will be the difference for a given year. The paired t-test assumes that the *difference* is approximately normally distributed. 
+
+Let's calculate the difference, and add it as a column of the NSD dataframe.
+We'll calculate this as OnNSD - BeforeNSD, so that positive numbers mean that the number of accidents has increased on NSD. 
+
+```{r}
+# paired t-tests are powerful
+
+# add new data frame to NSD
+NSDdata$diff <- NSDdata$OnNSD - NSDdata$BeforeNSD 
+NSDdata
+```
+Do these differences look approximately normal??
+Let's plot them out: 
+
+```{r}
+hist(NSDdata$diff,breaks = 25)
+```
+
+With only 10 data points, it is often hard to tell of data look normal.  But, at least it doesn't look like there are any horrible outliers.  We'll talk about testing for normality very soon in the class. 
+
+To perform a paired t-test, we can use the `t.test` function.  There are 2 options for this.  
+
+First, we can pretend that we didn't calculate the differences, and use the `t.test` function, with the `paired = TRUE` option:
+
+```{r}
+# test hypothesis
+# Ho: mean on on and after NSD are the same
+
+# order matters, it's going to take difference on - before
+t.test(NSDdata$OnNSD, NSDdata$BeforeNSD, paired = TRUE)
+
+# df are # of pairs - 1 (10 pairs)
+```
+This displays the test statistic: t = 2.447
+
+The degrees of freedom: df = 9
+
+The p-value: 0.03694
+
+If we use a critical value of alpha = 0.05, this p-value is < 0.05, so we can reject the null hypothesis that the means are the same. 
+```{r}
+# could do the same exact thing
+
+t.test(NSDdata$diff) # give single vector, it will hyp that mean is 0
+```
+
+
+### River phosphate levels: 
+
+Let's try another example. In this made-up example, we are comparing the phosphate levels (measured in milligrams/ml), upstream and downstream of sewage treatment plants on rivers in Wisconsin.  We randomly select 5 rivers with sewage treatment plants in Wisconsin, and sample the water phosphate levels 100m upstream and 100m downstream of the outflow of each sewage treatment plant.  
+Here are our data:
+
+| Upstream  | Downstream |
+| ------------- | ------------- |
+| 10  | 30  |
+| 15  | 45  |
+| 20  | 40  |
+| 12  | 12  |
+| 67  | 78  |
+
+
+Let's input the data into R, and quickly plot the data on the difference between downstream and upstream. 
+```{r}
+upstream <- c(10, 15, 20, 12, 67)
+downstream <- c(30, 45, 40, 12, 78)
+diff_phosphate = downstream - upstream
+hist(diff_phosphate,20)
+```
+
+The data on the difference between upstream and downstream look reasonably normal. 
+
+Let's test the null hypothesis that the mean phosphate level upstream is equal to the mean phosphate level downstream. 
+
+```{r}
+t.test(downstream, upstream, paired=TRUE)
+```
+
+
+This would give us the same result as doing a one-sampled t-test testing the null hypothesis that the mean difference between upstream and downstream phosphate levels is zero:
+
+```{r}
+t.test(diff_phosphate)
+```
+
+In both cases, the p-value < 0.05, so we can reject the null hypothesis that the mean phosphate level upstream is the same as the mean phosphate level downstream. 
+
