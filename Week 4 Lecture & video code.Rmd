@@ -58,6 +58,10 @@ year <- seq(87, 96, by = 1)
 beforeNSD <- c(516,610,581, 586,554,632,479,583,445,522)
 onNSD <- c(540,620,599,639,607,603,519,560,515,556)
 
+library(dplyr)
+library(tidyverse)
+library(car)
+
 # make data frame
 NSDdata <- data.frame(year, beforeNSD, onNSD)
 

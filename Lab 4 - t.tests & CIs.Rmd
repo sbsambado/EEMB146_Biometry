@@ -65,22 +65,27 @@ How do you decipher what category data falls in?
 #hist()
 #qqPlot()
 # mammals
+
+?droplevels()
 ```
 
 2. Shapiro-Wilk test (normality)
 ```{r}
 #shapiro.test()
+
 ```
 
   - H0 : you data are normally distributed 
   - HA : data are not normall distributed
-  - if p > 0.05, we can be reasonably confident that our data are normal
+  - if p > 0.05, fail to reject null, we can be reasonably confident that our data are normal
   
  3. Levene's test (homogeneity of variances)
   - H0: variance between two groups are equal
   - HA: variance between two groups are not equal
 ```{r}
 #leveneTest()
+?boxplot()
+boxplotboxplot(y~x, data = data, ...)
 ```
   
   ... if you reject the H0 of Lavene's test, use Welch's t-test
@@ -295,6 +300,9 @@ survival <- boxplot(titanic$Age ~ titanic$Survive,
 ```{r}
 # Quantile-Qauntile plot is graphical technique to determine if two data sets come from populations with a common distribution. 
 
+library(dyplr)
+??dpylr
+tidyverse 
 # Q-Q plot separated by group (surviving, yes or no). CHANGE THE VARIABLE NAMES IF NEEDED~!
 
 #install.packages('car')
@@ -354,6 +362,34 @@ Use a paired t-test to answer the following question: *Does writing the above ph
 # upload code
 dexterity <- read.csv('dexterity.csv')
 names(dexterity)
+
+# code thats on GS
+Dexterity <- read.csv("~/Desktop/dexterity.csv") 
+names(Dexterity)
+#library(tidyverse)
+#library(dplyr)
+weak <- subset(Dexterity,hand == "weak")
+dominant <- subset(Dexterity, hand == "dominant")
+DEXT <- data.frame(weak, dominant)
+DEXT2 <-DEXT[,-c(1,4)]
+names(DEXT2) <- c('timew', 'weak', 'timed','dominant')
+
+```
+
+```{r piazza examples for Q1}
+
+
+dexterity$time[dexterity$hand=="weak"] #create new data section for each hand
+dexterity$time[dexterity$hand=="dominant"] #create new data section for each hand
+
+# OR
+
+dominant = subset(dexterity, hand=="dominant")
+weak  = subset(dexterity, hand=="weak")
+diff_dexterity = dominant$time - weak$time
+
+boxplot(y ~ x, data = dexterity)
+
 ```
 
 (a.) Clearly *state* your null and alternative hypotheses of your paired t-test.  
@@ -373,6 +409,10 @@ par(mfrow = c(1,2))
 hist(dexterity$dominant_hand_s)
 hist(dexterity$weak_hand_s)
 par(mfrow = c(1,1))
+
+
+# how it's on gaucho space
+boxplot(DEXT2$timew, DEXT2$timed)
 ```
 
 (c.) Determine if the data are normally distributed and, if not, whether you think the Central Limit Theorem will allow you to use a statistical test that assumes normality. Include both a Q-Qplot and a Shapiro Wilk statistic.  
@@ -380,6 +420,8 @@ par(mfrow = c(1,1))
 ```{r}
 ??data.frame
 ?cbind()
+dexterity <- read.csv("~/Desktop/Classes/EEMB 146 S20/Week 4/Lab 4/Lab 4 data/dexterity.csv")
+head(dexterity)
 # for some reason students have gotten a different data set that does not split up hands i'm calling it dexterity.2
 dexterity.2 <- read.csv("~/Desktop/dexterity.csv")
 
@@ -389,7 +431,7 @@ dominant <- subset(dexterity, dexterity$hand=="dominant")
 dexterity.3 <- data.frame(weak, dominant)
 
 
-t.test(dexterity.3$we, dominant, paired = TRUE)
+t.test(dexterity.3$weak, dominant, paired = TRUE)
 
 
 #now, run the t-test on those groups
@@ -403,16 +445,26 @@ dominant <- dexterity$dominant_hand_s
 weak <- dexterity$weak_hand_s
 diff <- dominant - weak
 
+Diff <- weak - dominant
+qqPlot(Diff)
+shapiro.test(Diff)
 qqPlot(diff)
 shapiro.test(diff)
 
 #now, run the t-test on those groups
 t.test(dexterity$dominant_hand_s, dexterity$weak_hand_s, var.equal = FALSE) # note that 95% CI and a two-sided hypothesis are default settings, meaning we don't have to set them here!
+
+## GS data set
+
+DIFF <- DEXT2$timew - DEXT2$timed
+t.test(DIFF, mu = 0)
 ```
   
 (d.) Regardless of whether or not you think the assumptions of the t-test hold, *report* the 95% confidence interval for the paired t-test. Use the 95% CI to reject or fail to reject your null hypothesis. Be specific as to why you do one or ther other and *state* your conclusions about the dominant v. weak hand dexterity.
 ```{r}
 t.test(dexterity$dominant_hand_s, dexterity$weak_hand_s, paired = TRUE)
+
+
 ```
 
 #### Exercise 2: Natural selection in birds  
@@ -436,17 +488,27 @@ bumpus <- read.csv('bumpus.csv')
 ```{r}
 boxplot(total_length_mm~survival, data = bumpus, id.method = 'y')
 # shows that alive birds seem to be smaller than dead birds
+
+
 ```
 
 (c.) Check whether the normality assumption is valid for the two-sample t-test using the procedure described earlier. Include the Shapiro-Wilk p-value and the Q-Qplot and *explain* whether or not the normality assumption is valid.  
+
+H0 : mean of survival = mean of dead
+p > 0.05
+reject your H0 , the means are different 
+
+p <0.05, fail to reject your null, so could be confident in saying your data could normal
+
 ```{r}
 ?subset()
 # Shapiro-wilk normality test
 with(bumpus, shapiro.test(total_length_mm[survival == 'no']))
-?with()  
+
 with(bumpus, shapiro.test(total_length_mm[survival == 'yes']))
 # residuals are not normal
 
+#library(car)
 
 # Q-Qplot
 with(bumpus, qqPlot(total_length_mm[survival == "no"], dist ='norm'))
@@ -519,6 +581,7 @@ MEAN2 = 1 # Mean of population 2, should be positive !
 SD2 = 5 # Standard deviation of population 2
 SAMPLE_SIZE2 = 5 # Number of samples you are drawing from the population
 SKEWED2 = FALSE # Either TRUE or FALSE
+
 
 ### DO NOT ENTER ANYTHING BELOW THIS LINE
 #############################################################

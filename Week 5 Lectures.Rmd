@@ -1,0 +1,128 @@
+---
+title: "Week 5 Lectures"
+author: "sbsambado"
+date: "4/27/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Topic 1: Linear Models
+Yi = b0 + b1X1 + b2X2 + ... + ei
+
+Yi = dependent variabel (thing you are trying to explain)
+b0-nXn = explanatory variables
+ei = error
+#Example 1: One sample t-test
+
+  t.test(mydata$y)
+  Linear model
+    mod1 = lm(y~ 1, data = mydata)
+  
+  
+  t.test(mydata$y, mu = 4)
+  mod1b = lm(y-4)~ 1, data = mydata) # data has some mean around 4
+
+    p > 0.05 fail to reject null hypothesis
+    p < 0.05 reject null hypothesis
+
+#Example 2: Paired sample t-test
+
+  tree data : bark and leaves of same tree
+    H0: # of insects on bark and leaves are same
+  
+  t.test(bark, leaves, paired = TRUE, data = treedata)
+    p < 0.05 reject null H0
+  
+  mod2 = lm((bark~leaves) ~ 1, data = treedata)
+  summary(mod2)
+  
+#Example 3: Two-sampled t-test
+
+  frog diet : A or B vs. growth
+  assumes sd are equal
+  
+  F test: compare two variances
+    var.test(growth~diet, data = frog, alternative = "greater")
+  
+  t.test(growth~diet, data = frog, var.equal = TRUE) *Two-sample t-test*
+  p < 0.05 reject H0
+  
+  mod3 = lm(growth~diet, data = frog)
+  summary(mod3)
+  
+  
+  Welch's t-test : unequal variances
+  t.test(A,B) # more conservative
+  t.test(growth~diet, data = newfrogdata) # welch tewo sample t-test
+  
+*generl linear models assume equal vairances*
+    
+    
+    
+## Topic 2: Experimental Design
+Goals:
+- eliminate biases
+-reduce sampling eror (increase precision and power)
+
+Design features
+1. controls 
+  - identical except the treatment itself
+2. random assignments averages out the effects of confounding variables
+3. Blinding
+  - preventing knowledge of experimenter or patient of which treatment is given to whom
+  
+Standard error of the mean is a measure of sampling error
+- sampling error is theoretical term that describes the inevitable difference between a sample and a population
+
+t = signal / noise (standard error of mean, pooled varance by sample size)
+
+decrease noise to make ite easier to detect a given signal
+
+Reduce smapling error
+- replication
+-balance
+-blocking
+-extreme treatments
+
+
+## Topic 3: Power Analysis
+
+Statistical power
+- beta is the probability of making a type II error: That is failing to reject a null hypothesis that is really false
+
+- (1 - beta) is the power of the test: probability that you will correctly reject a false null hypothesis
+
+Power is determined by the relationship between:
+1. effect size
+2. variability
+
+Powe anaysis can be done 1) after the fact, 2) before the experiment
+t > t crit --> fail to reject H0
+
+```{r power analysis}
+# power analysis for paired t.test
+power.t.test(sig.level = 0.05, delta = 2, sd = 4, power = 0.8, type = 'paired')
+# need 34 pairs
+
+# power analysis for two sample t test
+power.t.test(sig.level = 0.05, delta = 2, sd = 4, power = 0.8, type = 'two.sample')
+# 64 individuals in each group
+```
+
+## Topic 4: Analysis of variance (ANOVA)
+
+H0 : all pop have equal means
+HA: at least one pop mean is different
+
+factor: single treatment whose effects are of interest
+- factorial desing investigaets all treatment combinations of 2+ variables
+- interaction between 2+ explanatory variables 
+
+A single factor has multiple levels
+  factor: fertilizer
+   - 3 levels of factor (A,B,C)
+   - H0: ua = ub = uc
+   - HA : at least one mean is different
