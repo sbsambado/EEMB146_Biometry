@@ -1,0 +1,74 @@
+---
+title: "Correlation in R"
+output: pdf_document
+---
+
+## Goals
+1. Illustrate running (Pearson) correlation in R
+2. Illustrate running Spearman rank correlation (a non-parametric version of correlation) in R
+
+
+Let's illustrate the correlation coefficient.
+'sd_y' is the standard deviation of the y variable.
+'a' allows us to make x and y correlated, or not.
+```{r}
+a =-1
+sd_y = 3
+x<-rnorm(30,mean=0,sd=3)
+y<- rnorm(30,mean=0,sd=sd_y) + a*x
+
+plot(x,y)
+cor_xy = round(cor(x,y,method="pearson"),3)
+text(0,0, cor_xy,col="red",cex = 2)
+```
+
+
+
+# A simple example of Pearson correlation. 
+Let's create a very small data set with x and y variables.
+
+```{r}
+x <- c(1, 3, 4, 5, 7)
+y <- c(5, 9, 7, 1, 13)
+```
+
+The `cor` command 
+```{r}
+cor(x,y,method="pearson")
+```
+
+
+```{r}
+plot(x,y)
+```
+
+This type of correlation is also called a Pearson correlation. 
+
+```{r}
+cor(x,y,method="pearson")
+```
+The 'cor.test' command will test the null hypothesis that the correlation is equal to zero. 
+```{r}
+cor.test(x,y,method="pearson") 
+```
+
+The non-parametric version of the correlation test is the spearman rank correlation.  It is based on the ranks of the data, rather than the data values. 
+
+```{r}
+rankx <- rank(x)
+rankx
+ranky <- rank(y)
+ranky
+```
+
+Performing a Pearson correlation test on the ranks is equivalent to running a Spearman correlatin test. 
+
+```{r}
+cor(rankx,ranky,method="pearson")
+```
+
+
+```{r}
+cor(x,y,method="spearman")
+```
+

@@ -1,0 +1,127 @@
+---
+title: "Regression"
+output: html_notebook
+---
+
+Read in lizard data: 
+
+```{r}
+lizard<-read.csv("lizard.csv",header=TRUE)
+lizard
+```
+
+```{r}
+plot(lizard)
+abline(lm(lizard$area~lizard$bite), col="red")
+```
+
+```{r}
+lizardmodel <- lm(area~bite, data=lizard)
+summary(lizardmodel)
+```
+```{r}
+anova(lizardmodel)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(lizardmodel)
+par(mfrow=c(1,1))
+```
+```{r}
+lizard$area
+```
+
+```{r}
+predicted_area<-predict(lizardmodel)
+predicted_area
+```
+
+```{r}
+residuals(lizardmodel)
+```
+
+
+Make our own residuals plot:
+```{r}
+plot(lizard$bite,residuals(lizardmodel), xlab = "lizard bite strength", ylab="residual")
+abline(h=0,col="gray")
+```
+
+```{r}
+library(car)
+```
+
+```{r}
+qqPlot(residuals(lizardmodel))
+```
+
+
+
+
+
+The lizard data follow the assumptions of linear regression quite well. 
+What if our data set included some outliers. 
+
+```{r}
+newdata<-c(5.5, 15)
+lizard_v2 <-rbind(lizard,newdata)
+```
+
+```{r}
+plot(lizard_v2$bite,lizard_v2$area,xlab="bite",ylab="area")
+points(5.5, 15,col="red",pch=16)
+abline(lizardmodel)
+lizardmodel_v2=lm(area~bite,data=lizard_v2)
+abline(lizardmodel_v2,col="red")
+
+```
+
+```{r}
+summary(lizardmodel_v2)
+```
+
+```{r}
+residuals(lizardmodel_v2)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(lizardmodel_v2)
+par(mfrow=c(1,1))
+```
+```{r}
+leveragePlots(lizardmodel_v2) 
+```
+
+```{r}
+plot(lizard_v2$bite,lizard_v2$area,xlab="bite",ylab="area")
+abline(lizardmodel_v2,col="red",lwd=2)
+for (i in 1:12) {
+  tempdata<-lizard_v2[-c(i),]
+  tempmod = lm(area~bite,data=tempdata)
+  abline(tempmod,col="gray")
+}
+abline(lizardmodel_v2,col="red",lwd=2)
+abline(lizardmodel,col="black",lwd=2)
+
+```
+
+
+```{r}
+nitrogen <- c(2, 4, 6, 8)
+height <- c(5, 11, 12, 20)
+mod1 <- lm(height~nitrogen)
+summary(mod1)
+```
+
+```{r}
+predicted_height = 0.5 + 2.3*5
+predicted_height
+```
+
+```{r}
+new <- data.frame(nitrogen = 5)
+predict(mod1, new)
+```
+

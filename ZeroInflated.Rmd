@@ -1,0 +1,279 @@
+---
+title: "R Notebook"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+Read in frog data
+```{r}
+
+frogs <- read.csv("~/Desktop/allpit_5yr.csv")
+head(frogs)
+
+# Julian data is treated as continual variable from some date
+```
+
+
+```{r}
+Unicorn<-frogs[frogs$Site_name=="UnicornBasin",]
+Mono<-frogs[frogs$Site_name=="MonoPass",]
+LIV<-frogs[frogs$Site_name=="LittleIndianValley",]
+
+```
+
+Pretend we want to do a simple analysis comparing the Bd loads between these 3 sites, and look for an effect of snout-to-vent length (SVL) on Bd load.  But, General linear models assume that the error (unexplained variance) is normally distributed.
+Let's look at the Bd loads at these 3 sites:
+```{r}
+hist(Unicorn$Zoospores,50)
+```
+
+```{r}
+mean(Unicorn$Zoospores)
+median(Unicorn$Zoospores)
+
+min(Unicorn$Zoospores)
+max(Unicorn$Zoospores)
+length(Unicorn$Zoospores)
+length(Unicorn$Zoospores[Unicorn$Zoospores==0])
+length(Unicorn$Zoospores[Unicorn$Zoospores==0])/length(Unicorn$Zoospores)
+
+```
+
+
+```{r}
+hist(Mono$Zoospores,50)
+```
+
+```{r}
+min(Mono$Zoospores)
+max(Mono$Zoospores)
+length(Mono$Zoospores)
+length(Mono$Zoospores[Mono$Zoospores==0])
+length(Mono$Zoospores[Mono$Zoospores==0])/length(Mono$Zoospores)
+
+# highly skewed data
+```
+
+```{r}
+hist(LIV$Zoospores,50)
+```
+
+```{r}
+mean(LIV$Zoospores)
+median(LIV$Zoospores)
+
+min(LIV$Zoospores)
+max(LIV$Zoospores)
+length(LIV$Zoospores)
+length(LIV$Zoospores[LIV$Zoospores==0])
+length(LIV$Zoospores[LIV$Zoospores==0])/length(LIV$Zoospores)
+
+# 38% swabs are 0
+```
+
+All of these data are clearly not Normally distributed.
+With so many zeros, we can't just log transform and add a small number.
+This just creates a peak at the log of whatever small number we add:
+```{r}
+# log transformed data still gives huge peak
+smallnumber=0.01 # adding 1 adds a lot of fraction to the dataset since this dataset has small numbers
+hist(log(Unicorn$Zoospores+smallnumber),50)
+```
+
+# Quick and dirty approach
+We could try dividing our analysis into 2 parts, and comparing the fraction infected between the 3 populations, and then comparing the Bd load between the 3 populations.
+*What cut-off do we use to declare an individual infected?* 
+Zero Zoospores? 
+1 Zoospore? 
+
+We'll create 2 new variables in frogs: 
+
+Infected0 is 1 if Zoospores > 0 (especially if you get multiple 0s)
+
+Infected1 is 1 if Zoospores > 1
+
+```{r}
+# added column to dataset
+frogs$Infected0<-ifelse(frogs$Zoospores>0,1,0)
+frogs$Infected1<-ifelse(frogs$Zoospores>1,1,0)
+```
+
+Logistic regression to compare Bd prevalence at the 3 sites:
+First for Infected0
+
+```{r}
+#explain infected as a function of site name + snout length
+# family comes from binomial distribution 1/0
+prevmod0 <- glm(Infected0 ~ Site_name+SVL, data = frogs, family = "binomial")
+summary(prevmod0)
+# SNVL no affect whether infected or not
+# different prevalences at different sites
+# logit transformed, interprest the estimate as pop infected
+# intercept is site little indian valley (alphabetica)
+```
+Logistic regression to compare Bd prevalence at the 3 sites:
+Then for Infected1
+
+```{r}
+# cut off of 1
+# finds differences between prevalences of different sites, gives slightly different results
+prevmod1 <- glm(Infected1 ~ Site_name+SVL, data = frogs, family = "binomial")
+summary(prevmod1)
+```
+
+frogload0 is a dataset with only Bd-positive frogs, using the 0 zoospore cut-off.
+
+frogload1 is a dataset with only Bd-positive frogs, using the 1 zoospore cut-off.
+
+
+
+```{r}
+frogload0<-frogs[frogs$Zoospores>0,]
+frogload1<-frogs[frogs$Zoospores>1,]
+```
+
+Create new variable that is log of zoospores in each of these datasets:
+
+```{r}
+# dont have to add values since they've all be transformed to be greater than 0
+frogload0$logZoospores = log(frogload0$Zoospores)
+frogload1$logZoospores = log(frogload1$Zoospores)
+```
+
+Use lm to compare Bd loads between sites for only the infected frogs.
+First using the 0 zoospore cut-off
+```{r}
+loadmod0<-lm(logZoospores ~ Site_name+SVL, data = frogload0)
+summary(loadmod0)
+# here shows effect of SVL
+```
+
+Then using the 1 Zoospore cut off:
+```{r}
+# cut off 1
+# SVL effect goes away
+loadmod1<-lm(logZoospores ~ Site_name+SVL, data = frogload1)
+summary(loadmod1)
+```
+
+
+Let's try the Zero-inflated models.  The models that are based on Poisson and Negative Binomial distributions are expecting count data.  That is, they are expecting integer values only. 
+We still need to decide what to do for the values of zoospores between 0 and 1.  
+Are these individuals infected or uninfected?  Should we include these individuals in the 0 category, or in the 1 category????
+
+Let's try both options. 
+
+```{r}
+frogs$Zoosp_round_down <- floor(frogs$Zoospores) # round down
+frogs$Zoosp_round_up <- ceiling(frogs$Zoospores) # round up
+```
+
+## ZIP and ZINB models
+Hurdle model : treat as 2 part process. 1 part is 0 vs non-xeros. 2nd part is
+```{r}
+#install.packages("pscl")
+#install.packages("lmtest")
+library(pscl)
+library(lmtest)
+
+```
+Zero inflated Poisson:
+
+2 type of 0s: good and bad zeroes 
+```{r}
+# posi: variance = mean 
+
+f1down <- formula(Zoosp_round_down ~ Site_name + SVL | Site_name + SVL) # what explains the load that's not 0 # | explantory variables if something is infected or not
+ZIP_round_down <- zeroinfl(f1down, dist = "poisson", link = "logit", data = frogs)
+summary(ZIP_round_down)
+
+# make simpler to make model run 
+f1down <- formula(Zoosp_round_down ~ Site_name + SVL | Site_name) # what explains the load that's not 0 # | explantory variables if something is infected or not
+ZIP_round_down <- zeroinfl(f1down, dist = "poisson", link = "logit", data = frogs)
+summary(ZIP_round_down)
+```
+
+Zero inflated Negative Binomial:
+
+```{r}
+# negative binom: variance >> mean
+f1down <- formula(Zoosp_round_down ~ Site_name + SVL | Site_name + SVL)
+ZINB_round_down <- zeroinfl(f1down, dist = "negbin", link = "logit", data = frogs) # changed distribution
+summary(ZINB_round_down)
+# doesnt fit
+# this is the first way to use bayesian approaches to fit things, nt enough combos of infected + SVL
+
+# but if you make it a simpler model it will run
+f1down <- formula(Zoosp_round_down ~ Site_name + SVL | Site_name )
+ZINB_round_down <- zeroinfl(f1down, dist = "negbin", link = "logit", data = frogs) # changed distribution
+summary(ZINB_round_down)
+```
+Likelihood ratio test to compare ZIP and ZINB
+```{r}
+# test the two models
+# sys neg binomial is better model for this data
+lrtest(ZIP_round_down,ZINB_round_down)
+```
+Overwhelming evidence to go with ZINB, rather than ZIP
+
+
+# ZIP and ZINB on zoospores_round_up
+
+Rounding data up
+
+Zero inflated Poisson:
+
+```{r}
+f1up <- formula(Zoosp_round_up ~ Site_name + SVL | Site_name)
+ZIP_round_up <- zeroinfl(f1up, dist = "poisson", link = "logit", data = frogs)
+summary(ZIP_round_up)
+# has toruble fitting
+```
+
+Zero inflated Negative Binomial:
+
+```{r}
+f1up <- formula(Zoosp_round_up ~ Site_name + SVL | Site_name)
+ZINB_round_up <- zeroinfl(f1up, dist = "negbin", link = "logit", data = frogs)
+summary(ZINB_round_up)
+```
+
+
+Likelihood ratio test to compare ZIP and ZINB
+```{r}
+lrtest(ZIP_round_down,ZINB_round_down)
+```
+Overwhelming evidence to go with ZINB, rather than ZIP
+
+
+
+###Zero Adjusted Poisson and Negative Binomial (hurdle models)
+Now try hurdle models
+
+# ZAP and ZANB on Zoosp_round_down
+```{r}
+H1downA <- hurdle(f1down, dist = "poisson", link = "logit",data = frogs)
+H1downB <- hurdle(f1down, dist = "negbin", link = "logit",data = frogs)
+lrtest(H1downA,H1downB)
+
+# neg bionomial better
+```
+Definitely need to use Negative Binomial version
+
+```{r}
+summary(H1downB)
+```
+
+# ZAP and ZANB on Zoosp_round_up
+```{r}
+H1upA <- hurdle(f1up, dist = "poisson", link = "logit",data = frogs)
+H1upB <- hurdle(f1up, dist = "negbin", link = "logit",data = frogs)
+lrtest(H1upA,H1upB)
+```
+
+Definitely need to use Negative Binomial version
+
+```{r}
+summary(H1upB)
+```
