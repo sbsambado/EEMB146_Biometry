@@ -1,0 +1,100 @@
+---
+title: "ANOVA, in R"
+output: pdf_document
+---
+
+## Goals
+1. Illustrate running a single-factor ANOVA
+2. Illustrate running mutiple comparisons
+
+#Read in the data
+This is the meadow warming experiment example:
+```{r}
+meadow <- read.csv("~/Desktop/meadow.csv", header = TRUE)
+head(meadow)
+```
+
+```{r}
+class(meadow$group)
+```
+Run the ANOVA, using the 'lm' command
+```{r}
+mymodel<-lm(length~group,data=meadow)
+summary(mymodel)
+```
+The 'anova' command will display the results as an Analysis of Variance table.
+```{r}
+anova(mymodel)
+```
+the coefficient command will just show you the 'coefficients'
+```{r}
+coefficients(mymodel)
+```
+
+The results of the ANOVA tell us only that the means are not all equal, but it doesn't tell us which means are different from which others.  For that we need to do a multiple comparisons test that controls for the experiment-wide probability of making a type I error. The 'emmeans' command in the 'emmeans' package does this. 
+```{r}
+#install.packages("emmeans")
+library("emmeans")
+```
+
+```{r}
+emmeans(mymodel,pairwise ~ group)
+```
+if your assumptions weren't met, run a kruskal-wallis rank sum test
+```{r}
+kruskal.test(length~group, data = meadow)
+
+```
+
+#Squirrel example
+Input the data on the body temperature of each squirrel
+```{r}
+cold<-c(30.4, 31.0, 31.2, 31.0, 31.5, 30.4, 30.6, 31.1,31.3, 31.9, 31.4, 31.6, 31.5, 31.4, 30.3, 30.5, 30.3, 30.0, 30.8, 31.0)
+
+warm<-c(36.3, 37.5, 36.9, 37.2, 37.5, 37.7, 37.5, 37.7, 38.0, 38.0, 37.6, 37.4, 37.9, 37.2, 36.3, 36.2, 36.4, 36.7, 36.8, 37.0, 37.7)
+
+hot<-c(40.7, 40.6, 40.9, 41.1, 41.5, 40.8, 40.5, 41.0, 41.3, 41.5, 41.3, 41.2, 40.7, 40.3, 40.2, 41.3, 40.7, 41.6, 41.5, 40.5)
+```
+
+Combine data into a vector for the squirrel body temperature and a vector listing which environment for each squirrel. 
+```{r}
+bodytemp<-c(cold,warm,hot)
+environment<-c(rep("cold",length(cold)),rep("warm",length(warm)),rep("hot",length(hot)))
+bodytemp
+environment
+```
+
+Turn it into a dataframe. 
+```{r}
+squirrel<-data.frame(environment,bodytemp)
+```
+We can visualize this as a boxplot:
+```{r}
+boxplot(bodytemp~environment,data=squirrel)
+```
+I want to change the order of the levels of environment, so that they make more sense:
+```{r}
+squirrel$environment<-factor(squirrel$environment,levels=c("cold","warm","hot"))
+```
+
+The order of the environments makes more sense in this boxplot:
+```{r}
+boxplot(bodytemp~environment,data=squirrel)
+```
+
+Run the ANOVA using the 'lm' command:
+
+```{r}
+squirrelmodel<-lm(bodytemp~environment,data=squirrel)
+summary(squirrelmodel)
+```
+We can plot the Analysis of Variance table using the `anova1 command:
+```{r}
+anova(squirrelmodel)
+```
+
+We can run emmeans to run the Tukey test for multiple comparisons:
+```{r}
+emmeans(squirrelmodel,pairwise ~ environment)
+```
+All of the means are different from all other means.
