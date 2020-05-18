@@ -5,6 +5,14 @@ date: "5/20/2018"
 output: html_document
 ---
 
+Week 7 Agenda Topics
+1. Turn in HW 6 on Wednesday (5/13) by 11:59
+2. HW 7 due next Wednesday (5/20) by 11:59
+3. Please look at comments TAs give you on HW assignments!
+4. How to email asking for help
+  - take a screenshot of your Rmarkdown code AND error message 
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_knit$set(root.dir = "~/Desktop/Classes/EEMB 146 S20/Week 7/Lab /Lab 7 Data files-20200510") #to set your working directory for the whole document so you don't have to set it in each code chunk
