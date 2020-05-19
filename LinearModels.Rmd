@@ -1,0 +1,375 @@
+---
+title: "Linear Models and Model Comparison"
+output: pdf_document
+---
+
+This R code was only slightly modified from the R code that accompanies Chapter 18 our textbook:
+https://whitlockschluter3e.zoology.ubc.ca/RExamples/Rcode_Chapter_18.html
+
+## Goals
+1. Illustrate fitting null and reduced models for linear regression in R
+2. Illustrate fitting null and reduced models for ANOVA in R
+3. Illustrate model comparison in R
+
+
+Install packages if they haven't already been installed.
+```{r}
+#install.packages("car", dependencies = TRUE)    # only if not yet installed
+#install.packages("tidyr", dependencies = TRUE)  # only if not yet installed
+
+```
+
+Load required packages into memory:
+```{r}
+library(ggplot2)
+library(nlme)
+library(car)
+library(lmtest)
+library(tidyr) # optional
+```
+
+
+
+# Linear regression is an example of a general linear model
+
+Compare the fits of the null and univariate regression models to data on the relationship between stability of plant biomass production and the initial number of plant species assigned to plots. The data are from Example 17.3 in the textbook.
+
+```{r}
+prairie <- read.csv("PlantDiversityAndStability.csv")
+head(prairie)
+
+```
+```{r}
+plot(biomassStability~nSpecies, data=prairie)
+```
+It looks like we will need to log transform `biomassStability to homogenize the variances. 
+
+```{r}
+prairie$logStability <- log(prairie$biomassStability)
+head(prairie)
+```
+
+
+### Fit reduced model
+In simple linear regression, the null or “reduced” model is a line whose slope is 0. To accomplish this, use a formula having a constant only. Leave nSpecies out of the formula. Show the fit in a scatter plot. You’ll need to specify a formula in geom_smooth() to force R to draw a line with no slope rather than the linear regression line. The formula is the same as in the preceding lm() command but uses “y” instead of the name of the y-variable. For these data, ggplot() won’t include “0” on the x-axis unless you tell it to.
+```{r}
+prairieNullModel <- lm(logStability ~ 1, data = prairie)
+
+ggplot(prairie, aes(nSpecies, logStability)) + 
+    geom_point(size = 3, shape = 1, col = "firebrick") + 
+    geom_smooth(method = "lm", formula = y ~ 1, se = FALSE, col = "black") +
+    xlim(0,16) +
+    labs(x = "Species number treatment", y = "Log-transformed ecosystem stability") + 
+    theme_classic()
+
+```
+
+```{r}
+summary(prairieNullModel)
+```
+
+```{r}
+anova(prairieNullModel)
+```
+
+
+### Fit full model
+Now includes the treatment variable nSpecies in the formula. Show the fit in a scatter plot
+```{r}
+prairieRegression <- lm(logStability ~ nSpecies, data = prairie)
+
+ggplot(prairie, aes(nSpecies, logStability)) + 
+    geom_point(size = 3, shape = 1, col = "firebrick") + 
+    geom_smooth(method = "lm", se = FALSE, col = "black") +
+    xlim(0,16) +
+    labs(x = "Species number treatment", y = "Log-transformed ecosystem stability") + 
+    theme_classic()
+```
+
+
+```{r}
+summary(prairieRegression)
+```
+
+```{r}
+anova(prairieRegression)
+```
+
+
+## Model Comparison and Model Selection
+
+There are a number of approaches for comparing models and selecting the "best-fit" model.
+
+Adding an additional term for an additional explanatory variable will always reduce the residual standard error and increase $R^2$, which is the fraction of variation in the response variable explained by the model. 
+
+But, adding terms to the model increases its complexity, and can result in overfitting the model. In model selection, we often look for a parsimonious model.  A **parsimonious** model is the simplest model that has the greatest explanatory predictive power. A parsimonious model explains the data with a minimum number of parameters, or predictor variables. Different approaches to model selection use different metrics for how well the model fit the data, and use different approaches for penalizing overly complex models.
+
+
+## F-test for nested models
+The `anova` function can be used to compare 2 or more nested general linear models.
+
+Models are **nested** when one model is a particular case of the other model.  
+That is, in the following example, modelB is nested within modelA, because you can get modelB just by dropping terms from  modelA:
+
+modelA:  y ~ constant + term1 + term2
+
+modelB:  y ~ constant + term1
+
+The `anova` function, when given two (or more) different models, does an F-test by default.
+
+When comparing `prairieNullModel`, `prairieRegression` using `anova`, you get exactly the same result as using `anova` on `prairieRegression`.
+
+```{r}
+anova(prairieNullModel, prairieRegression)
+```
+From this you can conclude that adding the effect of `nSpecies` significantly improves the model describing `logStability`.
+
+## Likelihood Ratio Test for nested models
+Another approach that can be used to compared nested models is the likelihood ratio test. 
+
+```{r}
+lrtest(prairieNullModel, prairieRegression)
+```
+This gives us the same answer as above, that adding the effect of `nSpecies` significantly improves the model describing `logStability`.
+
+
+## Model comparison using AIC (Akaike Information Criterion)
+
+Model fit ($R^2$) always improves with model complexity. We would like to strike a good balance between model fit and model simplicity.
+
+**AIC: Akaike Information Criterion**
+For a given data set and a given model, `AIC = −2 log L + 2p`
+
+where `L` is the maximum likelihood of the data using the model,
+and `p` is the number of parameters in the model.
+where L is the maximum likelihood of the data using the model,
+and p is the number of parameters in the model.
+
+AIC combines a measure of model fit with a measure of model complexity:  **The smaller the AIC value, the better!**
+
+AIC can be used to compare any models (the models do not have to be nested).  But, the data sets used to fit the different models have to be exactly the same.  
+
+We can compare our null and regression models for the praire data using AIC:
+```{r}
+AIC(prairieNullModel, prairieRegression)
+```
+
+The `prairieRegression` model has a lower AIC than the `prairieNullModel`, so `prairieRegression` is a better choice of a parsimonious model to describe the data. 
+
+**The absolute value of AIC is meaningless. The relative AIC values, between models, is meaningful.**
+
+Sometimes, AIC is expressed as $\Delta AIC$, where the AIC for the best fit model is set to zero, and the difference between the AICs of the best fit model and other models are given. 
+
+In this case, $\Delta AIC$ for `prairieRegression` would be 0, and  $\Delta AIC$ for `prairieNullModel` would be 38.48 
+
+**BIC:  Bayesian Information Criterion**
+
+BIC is another way to penalize more complex models.  There are various theoretical differences why people might use AIC vs. BIC, the only practical difference between the two is the size of the penalty.
+BIC penalizes model complexity more heavily than AIC. There might be some cases in which AIC will choose a more complex model than BIC.
+
+Once again **The smaller the BIC value, the better!**
+
+We can compare our null and regression models for the praire data using BIC:
+```{r}
+BIC(prairieNullModel, prairieRegression)
+```
+
+The `prairieRegression` model has a lower BIC than the `prairieNullModel`, so `prairieRegression` is a better choice of a parsimonious model to describe the data. 
+
+
+# ANOVA is an example of a general linear model
+
+Compare the fits of the null and single-factor ANOVA model to data on phase shift in the circadian rhythm of melatonin production in participants given alternative light treatments. The data are from Example 15.1.
+
+Read in the data:
+```{r}
+circadian <- read.csv("KneesWhoSayNight.csv")
+head(circadian)
+```
+
+Set order of treatment groups:
+
+```{r}
+circadian$treatment <- factor(circadian$treatment, levels = c("control", "knee","eyes")) 
+```
+
+
+## Fit null model to data
+In single-factor ANOVA, the null model fits the same mean to all groups. To accomplish, include only a constant in the model formula and leave out the treatment variable. Visualize the model fit (Figure 18.1-2 left).
+```{r}
+circadianNullModel <- lm(shift ~ 1, data = circadian)
+
+ggplot(circadian, aes(x = treatment, y = shift)) +
+    geom_point(color = "firebrick", size = 3) +
+    geom_hline(yintercept = predict(circadianNullModel)) + 
+    labs(x = "Light treatment", y = "Shift in circadian rhythm (h)") + 
+    theme_classic()
+
+
+```
+
+##Fit full model to data
+Now include the treatment variable in the formula. Visualise the model fit. 
+
+```{r}
+circadianAnova <- lm(shift ~ treatment, data = circadian)
+
+ggplot(circadian, aes(x = treatment, y = shift)) +
+    geom_point(color = "firebrick", size = 3) +
+    stat_summary(fun= mean, geom = "crossbar",
+        fun.min=mean, fun.max=mean, width = .4, color = "black") +
+    labs(x = "Light treatment", y = "Shift in circadian rhythm (h)") + 
+    theme_classic()
+
+```
+
+## F-test
+Test of whether the full model is a significant improvement over the null model.
+
+```{r}
+anova(circadianAnova)
+```
+
+Or, if you want to be explicit about what two models anova is comparing:
+```{r}
+anova(circadianNullModel,circadianAnova)
+```
+
+Or, you could do a likelihood ratio test to compare these nested models:
+
+```{r}
+lrtest(circadianNullModel,circadianAnova)
+```
+
+Or, you could compare the models by AIC or BIC:
+```{r}
+AIC(circadianNullModel,circadianAnova)
+
+```
+Remember lower values of AIC are better, so `circadianAnova` is a better choice than `circadianNullModel`.
+
+```{r}
+BIC(circadianNullModel,circadianAnova)
+```
+Lower values of BIC are also better, so BIC also says that `circadianAnova` is a better choice than `circadianNullModel`.
+
+
+
+
+## Meadow Warming Experiment Data
+```{r}
+meadow <- read.csv("meadow.csv")
+head(meadow)
+```
+
+Meadow null:
+```{r}
+meadow_null <- lm(length ~ 1, data = meadow)
+
+ggplot(meadow, aes(x = group, y = length)) +
+    geom_point(position = position_jitter(w = 0.1, h = 0), color = "firebrick", size = 3) +
+    geom_hline(yintercept = predict(meadow_null)) + 
+    labs(size = 12, x = "meadow warming treatment", y = "length of growing season") + 
+    theme_classic() +
+    theme(text = element_text(size = 20)) 
+
+
+```
+
+```{r}
+meadow_null <- lm(length ~ 1, data = meadow)
+summary(meadow_null)
+```
+```{r}
+anova(meadow_null)
+```
+
+
+
+Meadow group:
+```{r}
+meadow_group <- lm(length ~ group, data = meadow)
+
+ggplot(meadow, aes(x = group, y = length)) +
+    geom_point(position = position_jitter(w = 0.1, h = 0), color = "firebrick", size = 3) +
+    stat_summary(fun= mean, geom = "crossbar",
+        fun.min=mean, fun.max=mean, width = .4, color = "black") +
+     labs(size = 12, x = "meadow warming treatment", y = "length of growing season") + 
+    theme_classic() +
+    theme(text = element_text(size = 20)) 
+
+```
+
+```{r}
+meadow_group <- lm(length ~ group, data = meadow)
+summary(meadow_group)
+```
+
+
+Compare models by F-test:
+```{r}
+anova(meadow_null, meadow_group)
+```
+
+Compare models by AIC:
+```{r}
+AIC(meadow_null, meadow_group)
+```
+
+Compare models by BIC:
+```{r}
+BIC(meadow_null, meadow_group)
+```
+
+
+lizard data:
+
+```{r}
+lizard<-read.csv("lizard.csv")
+  
+head(lizard)
+```
+
+null model
+```{r}
+
+plot(area~bite,data=lizard,col="firebrick",pch=16,cex=1.5)
+abline(h=mean(lizard$area))
+```
+
+```{r}
+lizard_null<-lm(area~1,data=lizard)
+summary(lizard_null)
+```
+
+
+
+area model
+```{r}
+
+plot(area~bite,data=lizard,col="firebrick",pch=16,cex=1.5)
+abline(lm(area~bite,data=lizard))
+```
+
+```{r}
+lizard_bite<-lm(area~bite,data=lizard)
+summary(lizard_bite)
+```
+
+Compare models by F-test:
+```{r}
+anova(lizard_null,lizard_bite)
+```
+
+
+Compare models by AIC:
+```{r}
+AIC(lizard_null,lizard_bite)
+```
+
+
+Compare models by BIC:
+```{r}
+BIC(lizard_null,lizard_bite)
+```
+

@@ -1,0 +1,192 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(nlme)
+library(emmeans)
+```
+
+
+```{r}
+walkingstick <- read.csv(url("https://whitlockschluter3e.zoology.ubc.ca/Data/chapter15/chap15e6WalkingStickFemurs.csv"), stringsAsFactors = FALSE)
+head(walkingstick)
+```
+```{r}
+walkingstick <- mutate(group_by(walkingstick, specimen), meanFemur = mean(femurLength))
+head(data.frame(walkingstick))
+```
+
+```{r}
+walkingstick.ordered <- arrange(walkingstick, meanFemur)
+walkingstick.ordered$indiv <- rep(1:25, rep(2, 25))
+```
+
+```{r}
+ggplot(walkingstick.ordered, aes(indiv, femurLength)) +
+    stat_summary(fun.data = mean_se, geom = "linerange", 
+        colour = "black") +
+    geom_point(color = "firebrick", size = 3) +
+    labs(x = "Individual walking stick", y = "Femur length (cm)") + 
+    theme_classic()
+```
+
+```{r}
+walkingstickAnova <- lme(fixed = femurLength ~ 1, 
+             random = ~ 1|specimen, data = walkingstick)
+```
+
+
+
+
+```{r}
+walkingstickVarcomp <- VarCorr(walkingstickAnova)
+walkingstickVarcomp
+```
+
+```{r}
+varAmong  <- as.numeric( walkingstickVarcomp[1,1] )
+varWithin <- as.numeric( walkingstickVarcomp[2,1] )
+repeatability <- varAmong / (varAmong + varWithin)
+repeatability
+```
+
+
+
+
+```{r}
+zooplankton <- read.csv(url("https://whitlockschluter3e.zoology.ubc.ca/Data/chapter18/chap18e2ZooplanktonDepredation.csv"), stringsAsFactors = FALSE)
+zooplankton
+```
+
+
+create a random effect of individual
+# 5 individuals exposed to treatment A
+# 5 individuals exposed to treatment B
+
+#each individual measured 8 times
+
+```{r}
+measurements = 8
+replicates = 5
+
+meanA<-10
+meanB<-14
+
+sd = 3
+
+individual = c(rep("I1",measurements),rep("I2",measurements),rep("I3",measurements),rep("I4",measurements),rep("I5",measurements),rep("I6",measurements),rep("I7",measurements),rep("I8",measurements),rep("I9",measurements),rep("I10",measurements))
+
+treatment = c(rep("A",measurements*replicates), rep("B",measurements*replicates))
+
+indiv_effect <- rnorm(replicates*2,mean=0,sd=2)
+
+
+nitrogen = round(c(indiv_effect[1]+meanA+rnorm(measurements,mean=0,sd=sd),
+             indiv_effect[2]+meanA+rnorm(measurements,mean=0,sd=sd),
+             indiv_effect[3]+meanA+rnorm(measurements,mean=0,sd=sd),
+             indiv_effect[4]+meanA+rnorm(measurements,mean=0,sd=sd),
+             indiv_effect[5]+meanA+rnorm(measurements,mean=0,sd=sd),
+             indiv_effect[6]+meanB+rnorm(measurements,mean=0,sd=sd),
+             indiv_effect[7]+meanB+rnorm(measurements,mean=0,sd=sd),
+             indiv_effect[8]+meanB+rnorm(measurements,mean=0,sd=sd),
+             indiv_effect[9]+meanB+rnorm(measurements,mean=0,sd=sd),
+             indiv_effect[10]+meanB+rnorm(measurements,mean=0,sd=sd)),1)
+
+plant<-data.frame(individual, treatment, nitrogen)
+
+plant$individual<-factor(plant$individual, levels = c("I1","I2","I3","I4","I5","I6","I7","I8","I9","I10")) 
+
+```
+
+```{r}
+ggplot(plant, aes(x = individual, y = nitrogen, color=treatment)) +
+    geom_point(position = position_jitter(w = 0.1, h = 0), size = 3) +
+    stat_summary(fun= mean, geom = "crossbar",
+        fun.min=mean, fun.max=mean, width = .4, color = "black") +
+     labs(size = 12, x = "individual", y = "nitrogen") + 
+    theme_classic() +
+    theme(text = element_text(size = 20)) 
+
+```
+```{r}
+write.csv(plant," plant.csv")
+```
+
+```{r}
+plant_mixedmodel <- lme(fixed = nitrogen ~ treatment, 
+             random = ~ 1|individual, data = plant)
+summary(plant_mixedmodel)
+```
+
+```{r}
+plant_randomeffect <- lme(fixed = nitrogen ~ 1, 
+             random = ~ 1|individual, method = "ML", data = plant)
+anova(plant_randomeffect)
+```
+
+```{r}
+anova(plant_mixedmodel, plant_randomeffect)
+```
+
+
+```{r}
+plant_anova<-lm(nitrogen~treatment, data=plant)
+summary(plant_anova)
+```
+
+Could have taken the means of the 8 measurements on each indiviaual, and perform the ANOVA on the means:
+
+```{r}
+plant_summarized<-plant %>%
+  group_by(individual) %>%
+  summarize(nitrogen_mean = mean(nitrogen, na.rm = TRUE))
+plant_summarized$treatment=as.factor(c(rep("A",5),rep("B",5)))
+plant_summarized
+
+```
+
+```{r}
+plant_mean_model<-lm(nitrogen_mean~treatment, data=plant_summarized)
+summary(plant_mean_model)
+
+
+```{r}
+anova(plant_anova2)
+```
+
+
+
+```{r}
+corn<-read.csv("corn.csv")
+corn$treatment<-as.factor(corn$treatment)
+corn$block<-as.factor(corn$block)
+
+corn
+```
+
+
+```{r}
+corn_lm<-lm(yield~block+treatment,data=corn)
+anova(corn_lm)
+```
+
+anova(corn_lm)
+```{r}
+anova(corn_lm)
+```
+
+```{r}
+corn_mixedmodel <- lme(fixed = yield ~ treatment, 
+             random = ~ 1|block, data = corn)
+anova(corn_mixedmodel)
+
+```
+
